@@ -1,0 +1,8 @@
+subprojects {
+    repositories {
+        mavenCentral()
+    }
+
+    group = 'com.chiops'
+    version = '1.0.0'
+}

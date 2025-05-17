@@ -1,0 +1,9 @@
+rootProject.name = 'microservices'
+
+include 'ms-administrator-service'
+include 'ms-api-gateway'
+include 'ms-auth-service'
+include 'ms-driver-service'
+include 'ms-invitation-service'
+include 'ms-route-service'
+include 'ms-vehicle-service'

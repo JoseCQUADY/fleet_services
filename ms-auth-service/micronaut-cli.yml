@@ -1,0 +1,6 @@
+applicationType: default
+defaultPackage: com.chiops.auth
+testFramework: junit
+sourceLanguage: java
+buildTool: gradle
+features: [app-name, gradle, http-client, java, java-application, junit, logback, micronaut-aot, micronaut-build, micronaut-http-validation, netty-server, properties, reactor, reactor-http-client, readme, security, security-annotations, security-jwt, serialization-jackson, shade, static-resources]
