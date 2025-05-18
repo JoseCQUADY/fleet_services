@@ -18,50 +18,53 @@ pipeline {
     stages {
         stage('Detectar cambios en servicios') {
             steps {
-                script {
-                    sh "git fetch origin"
+                bat '''
+                echo Haciendo fetch de la rama base...
+                git fetch origin
 
-                    def diff = sh(script: "git diff --name-only ${params.BASE_BRANCH}", returnStdout: true).trim()
-                    echo "Cambios detectados:\n${diff}"
+                echo Detectando archivos modificados desde %BASE_BRANCH%...
+                FOR /F "tokens=*" %%i IN ('git diff --name-only %BASE_BRANCH%') DO (
+                    echo %%i>> diff.txt
+                )
 
-                    changedServices = []
+                set CHANGED_SERVICES=
+                for %%S in (%SERVICES%) do (
+                    findstr /B "%%S/" diff.txt >nul && set CHANGED_SERVICES=!CHANGED_SERVICES! %%S
+                )
 
-                    for (service in SERVICES) {
-                        if (diff.split('\n').any { it.startsWith("${service}/") }) {
-                            changedServices << service
-                        }
-                    }
+                if not defined CHANGED_SERVICES (
+                    echo No se detectaron cambios en microservicios.
+                    exit /b 1
+                )
 
-                    if (changedServices.isEmpty()) {
-                        echo "No se detectaron cambios en microservicios."
-                        currentBuild.result = 'SUCCESS'
-                        error('No hay servicios modificados. Deteniendo pipeline.')
-                    } else {
-                        echo "Servicios modificados: ${changedServices}"
-                    }
-                }
+                echo Servicios modificados: %CHANGED_SERVICES%
+                echo %CHANGED_SERVICES% > changed_services.txt
+                '''
             }
         }
 
         stage('Construir y testear servicios modificados') {
             steps {
-                script {
-                    for (service in changedServices) {
-                        dir(service) {
-                            echo "Ejecutando build para ${service}"
+                bat '''
+                set /p CHANGED_SERVICES=< changed_services.txt
 
-                            if (fileExists('gradlew')) {
-                                sh './gradlew clean test build'
-                            } else if (fileExists('build.gradle')) {
-                                sh 'gradle clean test build'
-                            } else if (fileExists('pom.xml')) {
-                                sh 'mvn clean test package'
-                            } else {
-                                echo "⚠️ No se encontró archivo de build en ${service}, omitiendo..."
-                            }
-                        }
-                    }
-                }
+                for %%S in (%CHANGED_SERVICES%) do (
+                    echo Construyendo %%S
+                    cd %%S
+
+                    if exist gradlew (
+                        call gradlew.bat clean test build
+                    ) else if exist build.gradle (
+                        call gradle clean test build
+                    ) else if exist pom.xml (
+                        call mvn clean test package
+                    ) else (
+                        echo ⚠️ No se encontró archivo de build en %%S, omitiendo...
+                    )
+
+                    cd ..
+                )
+                '''
             }
         }
     }
