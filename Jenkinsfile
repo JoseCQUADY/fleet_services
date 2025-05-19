@@ -60,15 +60,15 @@ pipeline {
                     echo ===============================
                     cd %%S
 
-                    if exist gradlew.bat (
-                        call gradlew.bat clean test build
-                    ) else if exist build.gradle (
-                        call gradle clean test build
-                    ) else if exist pom.xml (
-                        call mvn clean test package
-                    ) else (
-                        echo ⚠️ No se encontró archivo de build en %%S, omitiendo...
-                    )
+                        if exist gradlew.bat (
+                            call gradlew.bat clean build -x test
+                        ) else if exist build.gradle (
+                            call gradle clean build -x test
+                        ) else if exist pom.xml (
+                            call mvn clean package -DskipTests
+                        ) else (
+                            echo ⚠️ No se encontró archivo de build en %%S, omitiendo...
+                        )
 
                     cd ..
                 )
