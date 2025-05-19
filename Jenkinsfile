@@ -54,6 +54,7 @@ pipeline {
 
                     withCredentials([usernamePassword(credentialsId: env.DOCKER_HUB_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         for (service in changedServices) {
+                            echo "Iniciando construcción y subida para ${service}..."
                             dir(service) {
                                 bat """
                                 echo Construyendo imagen Docker para ${service}...
