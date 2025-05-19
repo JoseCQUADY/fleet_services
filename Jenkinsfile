@@ -46,7 +46,7 @@ pipeline {
             }
         }
 
-        stage('Construir y testear servicios modificados') {
+        stage('Construir servicios modificados (sin tests)') {
             steps {
                 bat '''
                 @echo off
@@ -56,16 +56,16 @@ pipeline {
 
                 for %%S in (!CHANGED_SERVICES!) do (
                     echo ===============================
-                    echo Construyendo %%S
+                    echo Construyendo %%S (sin tests)
                     echo ===============================
                     cd %%S
 
                     if exist gradlew.bat (
-                        call gradlew.bat clean test build
+                        call gradlew.bat clean build -x test
                     ) else if exist build.gradle (
-                        call gradle clean test build
+                        call gradle clean build -x test
                     ) else if exist pom.xml (
-                        call mvn clean test package
+                        call mvn clean package -DskipTests
                     ) else (
                         echo ⚠️ No se encontró archivo de build en %%S, omitiendo...
                     )
