@@ -18,21 +18,13 @@ pipeline {
                         currentBuild.result = 'SUCCESS'
                         return
                     }
-
-                    def changed = readFile(env.CHANGED_SERVICES_FILE).trim()
-                    if (changed == "") {
-                        echo "Archivo de servicios vacíos, no hay despliegue."
-                        currentBuild.result = 'SUCCESS'
-                        return
-                    }
                 }
             }
         }
 
         stage('Desplegar microservicios') {
             steps {
-                // Usar la clave privada como archivo secreto
-                withCredentials([file(credentialsId: 'oracle-ssh-key', variable: 'SSH_KEY')]) {
+                sshagent(credentials: ['oracle-ssh-key']) {
                     script {
                         def changedServices = readFile(env.CHANGED_SERVICES_FILE)
                             .trim()
@@ -40,14 +32,16 @@ pipeline {
                             .findAll { it }
 
                         def containerConfig = [
-                            'ms-api-gateway'       : [name: 'gateway',       port: 8080, extraNetworks: ['red-web']],
-                            'ms-auth-service'      : [name: 'auth',          port: 8081],
+                            'ms-api-gateway'          : [name: 'gateway',       port: 8080, extraNetworks: ['red-web']],
+                            'ms-auth-service'         : [name: 'auth',          port: 8081],
                             'ms-administrator-service': [name: 'administrator', port: 8082],
-                            'ms-invitation-service': [name: 'code',          port: 8083],
-                            'ms-vehicle-service'   : [name: 'vehicle',       port: 8084],
-                            'ms-driver-service'    : [name: 'driver',        port: 8085],
-                            'ms-route-service'     : [name: 'route',         port: 8086]
+                            'ms-invitation-service'   : [name: 'code',          port: 8083],
+                            'ms-vehicle-service'      : [name: 'vehicle',       port: 8084],
+                            'ms-driver-service'       : [name: 'driver',        port: 8085],
+                            'ms-route-service'        : [name: 'route',         port: 8086]
                         ]
+
+                        def sshCommand = "ssh -o StrictHostKeyChecking=no ${env.SSH_USER}@${env.SSH_HOST}"
 
                         changedServices.each { service ->
                             def conf = containerConfig[service]
@@ -56,20 +50,17 @@ pipeline {
                                 return
                             }
 
-                            def imageName = "${DOCKER_HUB_USER}/${service}:${IMAGE_TAG}"
+                            def imageName = "${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}"
                             def networks = ["devops"] + (conf.extraNetworks ?: [])
                             def networkFlags = networks.collect { "--network ${it}" }.join(' ')
 
-                            def remoteCommand = """
+                            def commands = """
                                 docker rm -f ${conf.name} || true
                                 docker pull ${imageName}
                                 docker run -d --name ${conf.name} ${networkFlags} -p ${conf.port}:8080 ${imageName}
                             """.stripIndent().trim()
 
-                            sh """
-                                chmod 600 $SSH_KEY
-                                ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} '${remoteCommand}'
-                            """
+                            sh "${sshCommand} '${commands}'"
                         }
                     }
                 }
