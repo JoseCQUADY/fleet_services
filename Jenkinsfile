@@ -30,9 +30,7 @@ pipeline {
                 set CHANGED_SERVICES=
                 for %%S in (%SERVICES_STRING%) do (
                     findstr /B "%%S/" diff.txt >nul
-                    if !errorlevel! == 1 (
-                        rem No match, skip
-                    ) else (
+                    if !errorlevel! == 0 (
                         set CHANGED_SERVICES=!CHANGED_SERVICES! %%S
                     )
                 )
@@ -44,6 +42,7 @@ pipeline {
 
                 echo Servicios modificados: !CHANGED_SERVICES!
                 echo !CHANGED_SERVICES! > changed_services.txt
+
                 endlocal
                 '''
             }
@@ -52,10 +51,19 @@ pipeline {
         stage('Construir y subir imágenes Docker') {
             steps {
                 script {
-                    def changedServices = readFile('changed_services.txt').trim().split(/\s+/)
+                    def changedServicesFile = 'changed_services.txt'
+                    if (!fileExists(changedServicesFile)) {
+                        echo "No hay servicios cambiados. Saliendo..."
+                        return
+                    }
+
+                    def changedServices = readFile(changedServicesFile).trim().split(/\s+/)
 
                     withCredentials([usernamePassword(credentialsId: env.DOCKER_HUB_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+
                         for (service in changedServices) {
+                            def lowerService = service.toLowerCase()
                             echo "Iniciando construcción y subida para ${service}..."
 
                             bat """
@@ -63,16 +71,13 @@ pipeline {
                             echo Construyendo imagen Docker para ${service}...
                             .\\gradlew :${service}:dockerBuild --no-daemon
 
-                            echo Haciendo login en Docker Hub...
-                            docker login -u %DOCKER_USER% -p %DOCKER_PASS%
-
-                            echo Etiquetando y subiendo imagen ${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}...
-                            docker tag ${service.toLowerCase()}:latest ${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}
-                            docker push ${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}
-
-                            docker logout
+                            echo Etiquetando y subiendo imagen ${env.DOCKER_HUB_USER}/${lowerService}:${env.IMAGE_TAG}...
+                            docker tag ${lowerService}:latest ${env.DOCKER_HUB_USER}/${lowerService}:${env.IMAGE_TAG}
+                            docker push ${env.DOCKER_HUB_USER}/${lowerService}:${env.IMAGE_TAG}
                             """
                         }
+
+                        bat "docker logout"
                     }
                 }
             }
