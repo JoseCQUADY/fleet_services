@@ -50,27 +50,33 @@ pipeline {
         stage('Construir y subir imágenes Docker') {
             steps {
                 script {
-                    def changedServices = readFile('changed_services.txt').trim().split(/\s+/)
+                    def servicios = [
+                        "ms-administrator-service",
+                        "ms-api-gateway",
+                        "ms-auth-service",
+                        "ms-driver-service",
+                        "ms-invitation-service",
+                        "ms-route-service",
+                        "ms-vehicle-service"
+                    ]
 
                     withCredentials([usernamePassword(credentialsId: env.DOCKER_HUB_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        for (service in changedServices) {
-                            echo "Iniciando construcción y subida para ${service}..."
-                            dir(service) {
-                                bat """
-                                echo Construyendo imagen Docker para ${service}...
-                                gradlew :${service}:dockerBuild --no-daemon
+                        // Login una sola vez
+                        bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
 
-                                echo Haciendo login en Docker Hub...
-                                docker login -u %DOCKER_USER% -p %DOCKER_PASS%
-
-                                echo Etiquetando y subiendo imagen ${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}...
-                                docker tag ${service.toLowerCase()}:latest ${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}
-                                docker push ${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}
-
-                                docker logout
-                                """
+                        for (servicio in servicios) {
+                            echo "Iniciando construcción y subida para ${servicio}..."
+                            dir("${servicio}") {
+                                bat "gradlew dockerBuild --no-daemon"
                             }
+
+                            bat """
+                                docker tag ${servicio.toLowerCase()}:latest ${env.DOCKER_HUB_USER}/${servicio}:${env.IMAGE_TAG}
+                                docker push ${env.DOCKER_HUB_USER}/${servicio}:${env.IMAGE_TAG}
+                            """
                         }
+
+                        bat "docker logout"
                     }
                 }
             }
