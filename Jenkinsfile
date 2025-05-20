@@ -7,9 +7,9 @@ pipeline {
 
     environment {
         SERVICES_STRING = 'ms-administrator-service ms-api-gateway ms-auth-service ms-driver-service ms-invitation-service ms-route-service ms-vehicle-service'
-        DOCKER_HUB_USER = 'jcq12' 
+        DOCKER_HUB_USER = 'jcq12'
         IMAGE_TAG = 'latest'
-        DOCKER_HUB_CREDENTIALS = 'docker-hub-credentials-id' 
+        DOCKER_HUB_CREDENTIALS = 'docker-hub-credentials-id'
     }
 
     stages {
@@ -30,7 +30,9 @@ pipeline {
                 set CHANGED_SERVICES=
                 for %%S in (%SERVICES_STRING%) do (
                     findstr /B "%%S/" diff.txt >nul
-                    if !errorlevel! == 0 (
+                    if !errorlevel! == 1 (
+                        rem No match, skip
+                    ) else (
                         set CHANGED_SERVICES=!CHANGED_SERVICES! %%S
                     )
                 )
@@ -55,21 +57,21 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: env.DOCKER_HUB_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         for (service in changedServices) {
                             echo "Iniciando construcción y subida para ${service}..."
-                            dir(service) {
-                                bat """
-                                echo Construyendo imagen Docker para ${service}...
-                                gradlew :${service}:dockerBuild --no-daemon
 
-                                echo Haciendo login en Docker Hub...
-                                docker login -u %DOCKER_USER% -p %DOCKER_PASS%
+                            bat """
+                            @echo off
+                            echo Construyendo imagen Docker para ${service}...
+                            .\\gradlew :${service}:dockerBuild --no-daemon
 
-                                echo Etiquetando y subiendo imagen ${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}...
-                                docker tag ${service.toLowerCase()}:latest ${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}
-                                docker push ${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}
+                            echo Haciendo login en Docker Hub...
+                            docker login -u %DOCKER_USER% -p %DOCKER_PASS%
 
-                                docker logout
-                                """
-                            }
+                            echo Etiquetando y subiendo imagen ${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}...
+                            docker tag ${service.toLowerCase()}:latest ${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}
+                            docker push ${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}
+
+                            docker logout
+                            """
                         }
                     }
                 }
