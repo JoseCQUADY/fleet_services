@@ -6,6 +6,18 @@
       <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="gradleJvm" value="#JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/ms-administrator-service" />
+            <option value="$PROJECT_DIR$/ms-api-gateway" />
+            <option value="$PROJECT_DIR$/ms-auth-service" />
+            <option value="$PROJECT_DIR$/ms-driver-service" />
+            <option value="$PROJECT_DIR$/ms-invitation-service" />
+            <option value="$PROJECT_DIR$/ms-route-service" />
+            <option value="$PROJECT_DIR$/ms-vehicle-service" />
+          </set>
+        </option>
       </GradleProjectSettings>
     </option>
   </component>

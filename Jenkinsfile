@@ -7,19 +7,20 @@ pipeline {
 
     environment {
         SERVICES_STRING = 'ms-administrator-service ms-api-gateway ms-auth-service ms-driver-service ms-invitation-service ms-route-service ms-vehicle-service'
+        DOCKER_HUB_USER = 'jcq12' 
+        IMAGE_TAG = 'latest'
+        DOCKER_HUB_CREDENTIALS = 'docker-hub-credentials-id' 
     }
 
     stages {
-        stage('Detectar cambios en servicios') {
+        stage('Detectar servicios cambiados') {
             steps {
                 bat '''
                 @echo off
                 setlocal enabledelayedexpansion
 
-                echo Haciendo fetch de la rama base...
                 git fetch origin
 
-                echo Detectando archivos modificados desde %BASE_BRANCH%...
                 > diff.txt (
                     for /f "delims=" %%i in ('git diff --name-only %BASE_BRANCH%') do (
                         echo %%i
@@ -46,34 +47,32 @@ pipeline {
             }
         }
 
-        stage('Construir servicios modificados (sin tests)') {
+        stage('Construir y subir imágenes Docker') {
             steps {
-                bat '''
-                @echo off
-                setlocal enabledelayedexpansion
+                script {
+                    def changedServices = readFile('changed_services.txt').trim().split(/\s+/)
 
-                set /p CHANGED_SERVICES=< changed_services.txt
+                    withCredentials([usernamePassword(credentialsId: env.DOCKER_HUB_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        for (service in changedServices) {
+                            echo "Iniciando construcción y subida para ${service}..."
+                            dir(service) {
+                                bat """
+                                echo Construyendo imagen Docker para ${service}...
+                                gradlew :${service}:dockerBuild --no-daemon
 
-                for %%S in (!CHANGED_SERVICES!) do (
-                    echo ===============================
-                    echo Construyendo %%S (sin tests)
-                    echo ===============================
-                    cd %%S
+                                echo Haciendo login en Docker Hub...
+                                docker login -u %DOCKER_USER% -p %DOCKER_PASS%
 
-                    if exist gradlew.bat (
-                        call gradlew.bat clean build -x test
-                    ) else if exist build.gradle (
-                        call gradle clean build -x test
-                    ) else if exist pom.xml (
-                        call mvn clean package -DskipTests
-                    ) else (
-                        echo ⚠️ No se encontró archivo de build en %%S, omitiendo...
-                    )
+                                echo Etiquetando y subiendo imagen ${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}...
+                                docker tag ${service.toLowerCase()}:latest ${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}
+                                docker push ${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}
 
-                    cd ..
-                )
-                endlocal
-                '''
+                                docker logout
+                                """
+                            }
+                        }
+                    }
+                }
             }
         }
     }
