@@ -76,6 +76,7 @@ pipeline {
                             """
                         }
 
+                        // Logout una vez terminado todo
                         bat "docker logout"
                     }
                 }
