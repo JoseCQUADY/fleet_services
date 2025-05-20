@@ -37,7 +37,7 @@ pipeline {
 
                 if not defined CHANGED_SERVICES (
                     echo No se detectaron cambios en microservicios.
-                    exit /b 0
+                    exit /b 1
                 )
 
                 echo Servicios modificados: !CHANGED_SERVICES!
