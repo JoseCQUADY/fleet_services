@@ -67,7 +67,7 @@ pipeline {
                         for (servicio in servicios) {
                             echo "Iniciando construcción y subida para ${servicio}..."
                             dir("${servicio}") {
-                                bat "gradlew dockerBuild --no-daemon"
+                                bat ".\\gradlew dockerBuild --no-daemon"
                             }
 
                             bat """
