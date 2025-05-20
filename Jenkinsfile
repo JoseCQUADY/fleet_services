@@ -50,21 +50,20 @@ pipeline {
         stage('Construir y subir imágenes Docker') {
             steps {
                 script {
-                    def servicios = [
-                        "ms-administrator-service",
-                        "ms-api-gateway",
-                        "ms-auth-service",
-                        "ms-driver-service",
-                        "ms-invitation-service",
-                        "ms-route-service",
-                        "ms-vehicle-service"
-                    ]
+                    def changedServices = readFile('changed_services.txt')
+                        .trim()
+                        .split(/\s+/)
+                        .findAll { it } 
+
+                    if (changedServices.isEmpty()) {
+                        echo "No hay microservicios que construir."
+                        return
+                    }
 
                     withCredentials([usernamePassword(credentialsId: env.DOCKER_HUB_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        // Login una sola vez
                         bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
 
-                        for (servicio in servicios) {
+                        changedServices.each { servicio ->
                             echo "Iniciando construcción y subida para ${servicio}..."
                             dir("${servicio}") {
                                 bat "gradlew dockerBuild --no-daemon"
@@ -76,7 +75,6 @@ pipeline {
                             """
                         }
 
-                        // Logout una vez terminado todo
                         bat "docker logout"
                     }
                 }
