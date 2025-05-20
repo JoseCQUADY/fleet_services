@@ -1,68 +1,12 @@
 pipeline {
     agent any
-
-    environment {
-        DOCKER_HUB_USER = 'jcq12'
-        IMAGE_TAG = 'latest'
-        SSH_USER = 'opc'
-        SSH_HOST = '40.233.6.181'
-        CHANGED_SERVICES_FILE = 'changed_services.txt'
-    }
-
     stages {
-        stage('Verificar servicios modificados') {
+        stage('Test SSH Connection') {
             steps {
-                script {
-                    if (!fileExists(env.CHANGED_SERVICES_FILE)) {
-                        echo "No hay archivo de servicios modificados, se omite despliegue."
-                        currentBuild.result = 'SUCCESS'
-                        return
-                    }
-                }
-            }
-        }
-
-        stage('Desplegar microservicios') {
-            steps {
-                sshagent(credentials: ['oracle-ssh-key']) {
-                    script {
-                        def changedServices = readFile(env.CHANGED_SERVICES_FILE)
-                            .trim()
-                            .split(/\s+/)
-                            .findAll { it }
-
-                        def containerConfig = [
-                            'ms-api-gateway'          : [name: 'gateway',       port: 8080, extraNetworks: ['red-web']],
-                            'ms-auth-service'         : [name: 'auth',          port: 8081],
-                            'ms-administrator-service': [name: 'administrator', port: 8082],
-                            'ms-invitation-service'   : [name: 'code',          port: 8083],
-                            'ms-vehicle-service'      : [name: 'vehicle',       port: 8084],
-                            'ms-driver-service'       : [name: 'driver',        port: 8085],
-                            'ms-route-service'        : [name: 'route',         port: 8086]
-                        ]
-
-                        def sshCommand = "ssh -o StrictHostKeyChecking=no ${env.SSH_USER}@${env.SSH_HOST}"
-
-                        changedServices.each { service ->
-                            def conf = containerConfig[service]
-                            if (!conf) {
-                                echo "No hay configuración para ${service}, lo omitimos."
-                                return
-                            }
-
-                            def imageName = "${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}"
-                            def networks = ["devops"] + (conf.extraNetworks ?: [])
-                            def networkFlags = networks.collect { "--network ${it}" }.join(' ')
-
-                            def commands = """
-                                docker rm -f ${conf.name} || true
-                                docker pull ${imageName}
-                                docker run -d --name ${conf.name} ${networkFlags} -p ${conf.port}:8080 ${imageName}
-                            """.stripIndent().trim()
-
-                            sh "${sshCommand} '${commands}'"
-                        }
-                    }
+                sshagent(['oracle-ssh-key']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no user@servidor_remoto "echo Conexion SSH exitosa"
+                    '''
                 }
             }
         }
