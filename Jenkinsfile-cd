@@ -1,12 +1,30 @@
 pipeline {
     agent any
+
+    environment {
+        SSH_KEY_ID = 'oracle_ssh_key' // ID de la credencial en Jenkins
+        SSH_KEY_PATH = "${env.WORKSPACE}/temp_ssh_key" // ruta temporal para la clave privada
+    }
+
     stages {
-        stage('Test SSH Connection') {
+        stage('Use SSH Key Directly') {
             steps {
-                sshagent(['oracle-ssh-key']) {
+                script {
+                    // Escribir la clave privada en un archivo temporal
+                    withCredentials([sshUserPrivateKey(credentialsId: env.SSH_KEY_ID, keyFileVariable: 'KEYFILE')]) {
+                        sh '''
+                            cp $KEYFILE ${SSH_KEY_PATH}
+                            chmod 600 ${SSH_KEY_PATH}
+                        '''
+                    }
+
+                    // Ejecutar el comando SSH usando la clave privada
                     sh '''
-                        ssh -o StrictHostKeyChecking=no user@servidor_remoto "echo Conexion SSH exitosa"
+                        ssh -i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no opc@your.oracle.server "echo 'Connected without sshagent!'"
                     '''
+
+                    // Borrar el archivo temporal de clave privada
+                    sh "rm -f ${SSH_KEY_PATH}"
                 }
             }
         }
