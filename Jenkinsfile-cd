@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SSH_KEY_ID = 'oracle_ssh_key' // ID de la credencial en Jenkins
+        SSH_KEY_ID = 'oracle-ssh-key' // ID de la credencial en Jenkins
         SSH_KEY_PATH = "${env.WORKSPACE}/temp_ssh_key" // ruta temporal para la clave privada
     }
 
