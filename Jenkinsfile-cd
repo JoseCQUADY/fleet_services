@@ -2,17 +2,17 @@ pipeline {
     agent any
 
     environment {
-        SSH_HOST = '40.233.6.181'
+        SSH_FILE = credentials('oracle-ssh-password')
     }
 
     stages {
-        stage('Prueba SSH') {
+        stage('Conectar por SSH') {
             steps {
-                sshagent (credentials: ['oracle-ssh-key']) {
-                    bat """
-                    ssh -o StrictHostKeyChecking=no opc@%SSH_HOST% echo Conexión SSH exitosa desde Jenkins en Windows
-                    """
-                }
+                sh '''
+                    cp "$SSH_FILE" key.pem
+                    chmod 600 key.pem
+                    ssh -i key.pem -o StrictHostKeyChecking=no opc@40.233.6.181 "echo Hola desde Jenkins"
+                '''
             }
         }
     }
