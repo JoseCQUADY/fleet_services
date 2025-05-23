@@ -10,11 +10,14 @@ pipeline {
     stages {
         stage('Obtener servicios modificados') {
             steps {
-                copyArtifacts(
-                    projectName: 'fleet-system', 
-                    selector: lastSuccessful(),
-                    flatten: true
-                )
+              script {
+                echo "Jobs disponibles:"
+                def jobs = Jenkins.instance.getAllItems(Job.class)
+                jobs.each { job -> 
+                 echo job.fullName
+    }
+  }
+}
             }
         }
 
