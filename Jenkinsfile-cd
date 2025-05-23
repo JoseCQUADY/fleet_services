@@ -46,9 +46,12 @@ pipeline {
                 docker run -d --name %NAME% --network devops -p %PORT%:%PORT% %DOCKER_HUB_USER%/%SERVICE%:%IMAGE_TAG%"
                 goto :eof
                 '''
-                if "%SERVICE%"=="ms-api-gateway" (
-                    ssh -i key.pem -o StrictHostKeyChecking=no opc@40.233.6.181 "docker network connect red-web gateway"
-                )
+                if (service == "ms-api-gateway") {
+                    bat """
+                        ssh -i key.pem -o StrictHostKeyChecking=no opc@40.233.6.181 "docker network connect web gateway"
+                     """
+                }
+
 
             }
         }
