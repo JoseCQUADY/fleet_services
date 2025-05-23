@@ -81,4 +81,10 @@ pipeline {
             }
         }
     }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'changed_services.txt', fingerprint: true
+        }
+    }
 }
