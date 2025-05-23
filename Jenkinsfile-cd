@@ -15,7 +15,6 @@ pipeline {
                 def jobs = Jenkins.instance.getAllItems(Job.class)
                 jobs.each { job -> 
                  echo job.fullName
-    }
   }
 }
             }
