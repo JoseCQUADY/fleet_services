@@ -3,17 +3,53 @@ pipeline {
 
     environment {
         SSH_FILE = credentials('oracle-ssh-password')
+        DOCKER_HUB_USER = 'jcq12'
+        IMAGE_TAG = 'latest'
     }
 
     stages {
-        stage('Crear archivo remoto') {
+        stage('Desplegar microservicios modificados') {
             steps {
                 bat '''
                 copy "%SSH_FILE%" key.pem
                 powershell -Command "icacls key.pem /inheritance:r"
                 powershell -Command "icacls key.pem /grant:r %USERNAME%:F"
-                ssh -i key.pem -o StrictHostKeyChecking=no opc@40.233.6.181 "echo 'Hola mundo' > /home/opc/hola_mundo.txt"
+
+                if not exist changed_services.txt (
+                    echo No hay servicios modificados. Nada que desplegar.
+                    exit /b 0
+                )
+
+                for /f %%S in (changed_services.txt) do (
+                    set SERVICE=%%S
+                    call :deployService %%S
+                )
+                exit /b 0
+
+                :deployService
+                set SERVICE=%1
+
+                rem Mapea nombre y puerto según el servicio
+                if "%SERVICE%"=="ms-api-gateway" set NAME=gateway& set PORT=8080
+                if "%SERVICE%"=="ms-auth-service" set NAME=auth& set PORT=8081
+                if "%SERVICE%"=="ms-administrator-service" set NAME=administrator& set PORT=8082
+                if "%SERVICE%"=="ms-invitation-service" set NAME=code& set PORT=8083
+                if "%SERVICE%"=="ms-vehicle-service" set NAME=vehicle& set PORT=8084
+                if "%SERVICE%"=="ms-driver-service" set NAME=driver& set PORT=8085
+                if "%SERVICE%"=="ms-route-service" set NAME=route& set PORT=8086
+
+                echo Desplegando servicio: %SERVICE% como contenedor %NAME% en puerto %PORT%
+
+                ssh -i key.pem -o StrictHostKeyChecking=no opc@40.233.6.181 ^
+                "docker pull %DOCKER_HUB_USER%/%SERVICE%:%IMAGE_TAG% && ^
+                docker rm -f %NAME% || true && ^
+                docker run -d --name %NAME% --network devops -p %PORT%:%PORT% %DOCKER_HUB_USER%/%SERVICE%:%IMAGE_TAG%"
+                goto :eof
                 '''
+                if "%SERVICE%"=="ms-api-gateway" (
+                    ssh -i key.pem -o StrictHostKeyChecking=no opc@40.233.6.181 "docker network connect red-web gateway"
+                )
+
             }
         }
     }
