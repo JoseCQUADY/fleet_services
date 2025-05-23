@@ -8,6 +8,16 @@ pipeline {
     }
 
     stages {
+        stage('Obtener servicios modificados') {
+            steps {
+                copyArtifacts(
+                    projectName: 'fleet-system', 
+                    selector: lastSuccessful(),
+                    flatten: true
+                )
+            }
+        }
+
         stage('Desplegar microservicios modificados') {
             steps {
                 bat '''
