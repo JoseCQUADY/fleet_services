@@ -52,7 +52,7 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: env.DOCKER_HUB_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         bat "echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin"
 
-<<<<<<< HEAD
+
                         changedServices.each { service ->
                             echo "Iniciando construcción y subida para ${service}..."
 
@@ -78,16 +78,16 @@ pipeline {
                             } else {
                                 echo "No se encontró Dockerfile en ${dockerfilePath}, se omite la construcción."
                             }
-=======
+
                         changedServices.each { servicio ->
                             echo "Iniciando construcción y subida para ${servicio}..."
 
-                            // 1. Genera el Dockerfile
+                            
                             dir("${servicio}") {
                                 bat "gradlew dockerfile --no-daemon"
                             }
 
-                            // 2. Construye y sube la imagen con buildx (linux/amd64)
+                            
                             def dockerfilePath = "${servicio}/build/docker/Dockerfile"
                             def contextPath = "${servicio}/build/docker"
 
@@ -97,7 +97,7 @@ pipeline {
                                   --push `
                                   -f "${dockerfilePath}" "${contextPath}"
                             """
->>>>>>> origin/main
+
                         }
 
                         bat "docker logout"
@@ -111,14 +111,12 @@ pipeline {
         always {
             archiveArtifacts artifacts: 'changed_services.txt', fingerprint: true
         }
-<<<<<<< HEAD
+
         failure {
             echo 'El pipeline falló. Verifica los logs para más detalles.'
         }
         success {
             echo 'Pipeline ejecutado exitosamente.'
         }
-=======
->>>>>>> origin/main
     }
 }
