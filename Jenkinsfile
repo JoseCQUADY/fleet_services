@@ -52,7 +52,6 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: env.DOCKER_HUB_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         bat "echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin"
 
-
                         changedServices.each { service ->
                             echo "Iniciando construcción y subida para ${service}..."
 
@@ -76,48 +75,3 @@ pipeline {
                                       -f "${dockerfilePath}" "${dockerContext}"
                                 """
                             } else {
-                                echo "No se encontró Dockerfile en ${dockerfilePath}, se omite la construcción."
-                            }
-
-                        changedServices.each { servicio ->
-                            echo "Iniciando construcción y subida para ${servicio}..."
-
-                            
-                            dir("${servicio}") {
-                                bat "gradlew dockerfile --no-daemon"
-                            }
-
-                            
-                            def dockerfilePath = "${servicio}/build/docker/Dockerfile"
-                            def contextPath = "${servicio}/build/docker"
-
-                            bat """
-                                docker buildx build --platform linux/amd64 `
-                                  -t ${env.DOCKER_HUB_USER}/${servicio}:${env.IMAGE_TAG} `
-                                  --push `
-                                  -f "${dockerfilePath}" "${contextPath}"
-                            """
-
-                        }
-
-                        bat "docker logout"
-                    }
-                }
-            }
-        }
-    }
-
-    post {
-        always {
-            archiveArtifacts artifacts: 'changed_services.txt', fingerprint: true
-        }
-
-        failure {
-            echo 'El pipeline falló. Verifica los logs para más detalles.'
-        }
-        success {
-            echo 'Pipeline ejecutado exitosamente.'
-        }
-    }
-}
-}
