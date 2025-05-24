@@ -35,9 +35,9 @@ pipeline {
                         echo "Servicios modificados: ${changedServices.join(', ')}"
                         writeFile file: 'changed_services.txt', text: changedServices.join(' ')
                     }
-                }
-            }
-        }
+                } // cierre script
+            } // cierre steps
+        } // cierre stage Detectar servicios cambiados
 
         stage('Construir y subir imágenes Docker') {
             when {
@@ -75,3 +75,27 @@ pipeline {
                                       -f "${dockerfilePath}" "${dockerContext}"
                                 """
                             } else {
+                                echo "No se encontró Dockerfile en ${dockerfilePath}, se omite la construcción."
+                            }
+                        } // cierre changedServices.each
+
+                        bat "docker logout"
+                    } // cierre withCredentials
+                } // cierre script
+            } // cierre steps
+        } // cierre stage Construir y subir imágenes Docker
+    } // cierre stages
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'changed_services.txt', fingerprint: true
+        }
+
+        failure {
+            echo 'El pipeline falló. Verifica los logs para más detalles.'
+        }
+        success {
+            echo 'Pipeline ejecutado exitosamente.'
+        }
+    }
+} // cierre pipeline
