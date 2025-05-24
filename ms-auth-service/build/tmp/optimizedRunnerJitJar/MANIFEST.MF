@@ -1,0 +1,29 @@
+Manifest-Version: 1.0
+Main-Class: com.chiops.auth.Application
+Class-Path: libs/micronaut-reactor-http-client-3.7.0.jar libs/micronaut-
+ security-jwt-4.12.1.jar libs/micronaut-security-4.12.1.jar libs/microna
+ ut-reactor-3.7.0.jar libs/micronaut-serde-jackson-2.14.0.jar libs/micro
+ naut-security-annotations-4.12.1.jar libs/micronaut-serde-support-2.14.
+ 0.jar libs/micronaut-serde-api-2.14.0.jar libs/micronaut-http-client-4.
+ 8.9.jar libs/micronaut-websocket-4.8.9.jar libs/micronaut-http-server-n
+ etty-4.8.9.jar libs/micronaut-http-netty-4.8.9.jar libs/micronaut-http-
+ server-4.8.9.jar libs/micronaut-http-client-core-4.8.9.jar libs/microna
+ ut-jackson-core-4.8.9.jar libs/micronaut-json-core-4.8.9.jar libs/micro
+ naut-router-4.8.9.jar libs/micronaut-http-4.8.9.jar libs/micronaut-disc
+ overy-core-4.8.9.jar libs/micronaut-context-propagation-4.8.9.jar libs/
+ micronaut-context-4.8.9.jar libs/micronaut-aop-4.8.9.jar libs/micronaut
+ -buffer-netty-4.8.9.jar libs/micronaut-inject-4.8.9.jar libs/logback-cl
+ assic-1.5.16.jar libs/jackson-annotations-2.18.2.jar libs/jackson-core-
+ 2.18.2.jar libs/jakarta.annotation-api-2.1.1.jar libs/netty-handler-pro
+ xy-4.1.118.Final.jar libs/netty-codec-http2-4.1.118.Final.jar libs/nett
+ y-codec-http-4.1.118.Final.jar libs/netty-codec-socks-4.1.118.Final.jar
+  libs/netty-handler-4.1.118.Final.jar libs/netty-codec-4.1.118.Final.ja
+ r libs/netty-transport-native-unix-common-4.1.118.Final.jar libs/netty-
+ transport-4.1.118.Final.jar libs/netty-buffer-4.1.118.Final.jar libs/ne
+ tty-resolver-4.1.118.Final.jar libs/netty-common-4.1.118.Final.jar libs
+ /reactor-core-3.7.2.jar libs/micronaut-core-reactive-4.8.9.jar libs/rea
+ ctive-streams-1.0.4.jar libs/micronaut-core-4.8.9.jar libs/logback-core
+ -1.5.16.jar libs/slf4j-api-2.0.16.jar libs/nimbus-jose-jwt-9.48.jar lib
+ s/jakarta.validation-api-3.1.1.jar libs/jakarta.inject-api-2.0.1.jar re
+ sources/ classes/
+

@@ -1,0 +1,47 @@
+Manifest-Version: 1.0
+Class-Path: resources/ classes/ libs/micronaut-data-hibernate-jpa-4.12.0
+ .jar libs/micronaut-data-tx-hibernate-4.12.0.jar libs/micronaut-hiberna
+ te-validator-4.7.0.jar libs/micronaut-security-jwt-4.12.1.jar libs/micr
+ onaut-security-4.12.1.jar libs/micronaut-serde-jackson-2.14.0.jar libs/
+ micronaut-hibernate-jpa-6.1.1.jar libs/micronaut-jdbc-hikari-6.1.1.jar 
+ libs/micronaut-data-jpa-4.12.0.jar libs/micronaut-data-runtime-4.12.0.j
+ ar libs/micronaut-data-model-4.12.0.jar libs/micronaut-data-tx-jdbc-4.1
+ 2.0.jar libs/micronaut-data-tx-4.12.0.jar libs/micronaut-data-connectio
+ n-hibernate-4.12.0.jar libs/micronaut-validation-4.9.0.jar libs/microna
+ ut-security-annotations-4.12.1.jar libs/micronaut-serde-support-2.14.0.
+ jar libs/micronaut-serde-api-2.14.0.jar libs/micronaut-reactor-3.7.0.ja
+ r libs/micronaut-data-connection-jdbc-4.12.0.jar libs/micronaut-jdbc-6.
+ 1.1.jar libs/micronaut-data-connection-4.12.0.jar libs/micronaut-http-c
+ lient-4.8.9.jar libs/micronaut-websocket-4.8.9.jar libs/micronaut-http-
+ server-netty-4.8.9.jar libs/micronaut-http-netty-4.8.9.jar libs/microna
+ ut-http-server-4.8.9.jar libs/micronaut-http-client-core-4.8.9.jar libs
+ /micronaut-jackson-core-4.8.9.jar libs/micronaut-json-core-4.8.9.jar li
+ bs/micronaut-router-4.8.9.jar libs/micronaut-runtime-4.8.9.jar libs/mic
+ ronaut-http-4.8.9.jar libs/micronaut-discovery-core-4.8.9.jar libs/micr
+ onaut-context-propagation-4.8.9.jar libs/micronaut-retry-4.8.9.jar libs
+ /micronaut-context-4.8.9.jar libs/micronaut-aop-4.8.9.jar libs/micronau
+ t-buffer-netty-4.8.9.jar libs/micronaut-inject-4.8.9.jar libs/logback-c
+ lassic-1.5.16.jar libs/mysql-connector-j-9.2.0.jar libs/jackson-annotat
+ ions-2.18.2.jar libs/jackson-core-2.18.2.jar libs/jakarta.annotation-ap
+ i-2.1.1.jar libs/netty-handler-proxy-4.1.118.Final.jar libs/netty-codec
+ -http2-4.1.118.Final.jar libs/netty-codec-http-4.1.118.Final.jar libs/n
+ etty-codec-socks-4.1.118.Final.jar libs/netty-handler-4.1.118.Final.jar
+  libs/netty-codec-4.1.118.Final.jar libs/netty-transport-native-unix-co
+ mmon-4.1.118.Final.jar libs/netty-transport-4.1.118.Final.jar libs/nett
+ y-buffer-4.1.118.Final.jar libs/netty-resolver-4.1.118.Final.jar libs/n
+ etty-common-4.1.118.Final.jar libs/reactor-core-3.7.2.jar libs/micronau
+ t-core-reactive-4.8.9.jar libs/reactive-streams-1.0.4.jar libs/micronau
+ t-core-4.8.9.jar libs/protobuf-java-4.29.0.jar libs/logback-core-1.5.16
+ .jar libs/HikariCP-6.2.1.jar libs/slf4j-api-2.0.16.jar libs/nimbus-jose
+ -jwt-9.48.jar libs/hibernate-core-6.6.9.Final.jar libs/jakarta.persiste
+ nce-api-3.1.0.jar libs/jakarta.transaction-api-2.0.1.jar libs/byte-budd
+ y-1.17.0.jar libs/hibernate-validator-8.0.2.Final.jar libs/jakarta.vali
+ dation-api-3.1.1.jar libs/jakarta.inject-api-2.0.1.jar libs/jboss-loggi
+ ng-3.5.0.Final.jar libs/hibernate-commons-annotations-7.0.3.Final.jar l
+ ibs/jandex-3.2.0.jar libs/classmate-1.5.1.jar libs/jaxb-runtime-4.0.2.j
+ ar libs/jaxb-core-4.0.2.jar libs/jakarta.xml.bind-api-4.0.0.jar libs/an
+ tlr4-runtime-4.13.0.jar libs/angus-activation-2.0.0.jar libs/jakarta.ac
+ tivation-api-2.1.1.jar libs/txw2-4.0.2.jar libs/istack-commons-runtime-
+ 4.1.1.jar
+Main-Class: com.chiops.administrator.Application
+

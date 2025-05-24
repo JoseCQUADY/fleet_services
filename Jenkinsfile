@@ -7,62 +7,78 @@ pipeline {
 
     environment {
         SERVICES_STRING = 'ms-administrator-service ms-api-gateway ms-auth-service ms-driver-service ms-invitation-service ms-route-service ms-vehicle-service'
-        DOCKER_HUB_USER = 'jcq12' 
+        DOCKER_HUB_USER = 'jcq12'
         IMAGE_TAG = 'latest'
-        DOCKER_HUB_CREDENTIALS = 'docker-hub-credentials-id' 
+        DOCKER_HUB_CREDENTIALS = 'docker-hub-credentials-id'
     }
 
     stages {
         stage('Detectar servicios cambiados') {
             steps {
-                bat '''
-                @echo off
-                setlocal enabledelayedexpansion
+                script {
+                    bat 'git fetch origin'
 
-                git fetch origin
+                    def diffFiles = bat(script: "git diff --name-only ${params.BASE_BRANCH}", returnStdout: true).trim().split('\r?\n')
+                    def services = env.SERVICES_STRING.split(' ')
+                    def changedServices = []
 
-                > diff.txt (
-                    for /f "delims=" %%i in ('git diff --name-only %BASE_BRANCH%') do (
-                        echo %%i
-                    )
-                )
+                    for (service in services) {
+                        if (diffFiles.any { it.startsWith("${service}\\") }) {
+                            changedServices << service
+                        }
+                    }
 
-                set CHANGED_SERVICES=
-                for %%S in (%SERVICES_STRING%) do (
-                    findstr /B "%%S/" diff.txt >nul
-                    if !errorlevel! == 0 (
-                        set CHANGED_SERVICES=!CHANGED_SERVICES! %%S
-                    )
-                )
-
-                if not defined CHANGED_SERVICES (
-                    echo No se detectaron cambios en microservicios.
-                    exit /b 0
-                )
-
-                echo Servicios modificados: !CHANGED_SERVICES!
-                echo !CHANGED_SERVICES! > changed_services.txt
-                endlocal
-                '''
+                    if (changedServices.isEmpty()) {
+                        echo "No se detectaron cambios en microservicios."
+                        writeFile file: 'changed_services.txt', text: ''
+                    } else {
+                        echo "Servicios modificados: ${changedServices.join(', ')}"
+                        writeFile file: 'changed_services.txt', text: changedServices.join(' ')
+                    }
+                }
             }
         }
 
         stage('Construir y subir imágenes Docker') {
+            when {
+                expression {
+                    return fileExists('changed_services.txt') && readFile('changed_services.txt').trim()
+                }
+            }
             steps {
                 script {
-                    def changedServices = readFile('changed_services.txt')
-                        .trim()
-                        .split(/\s+/)
-                        .findAll { it } 
-
-                    if (changedServices.isEmpty()) {
-                        echo "No hay microservicios que construir."
-                        return
-                    }
+                    def changedServices = readFile('changed_services.txt').trim().split(/\s+/)
 
                     withCredentials([usernamePassword(credentialsId: env.DOCKER_HUB_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+                        bat "echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin"
 
+<<<<<<< HEAD
+                        changedServices.each { service ->
+                            echo "Iniciando construcción y subida para ${service}..."
+
+                            dir(service) {
+                                if (fileExists("gradlew.bat")) {
+                                    bat "gradlew.bat dockerfile --no-daemon"
+                                } else {
+                                    echo "No se encontró gradlew en ${service}, omitiendo generación de Dockerfile."
+                                }
+                            }
+
+                            def dockerfilePath = "${service}\\build\\docker\\Dockerfile"
+                            def dockerContext = "${service}\\build\\docker"
+                            def imageName = "${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}"
+
+                            if (fileExists(dockerfilePath)) {
+                                bat """
+                                    docker buildx build --platform linux/amd64 ^
+                                      -t ${imageName} ^
+                                      --push ^
+                                      -f "${dockerfilePath}" "${dockerContext}"
+                                """
+                            } else {
+                                echo "No se encontró Dockerfile en ${dockerfilePath}, se omite la construcción."
+                            }
+=======
                         changedServices.each { servicio ->
                             echo "Iniciando construcción y subida para ${servicio}..."
 
@@ -81,6 +97,7 @@ pipeline {
                                   --push `
                                   -f "${dockerfilePath}" "${contextPath}"
                             """
+>>>>>>> origin/main
                         }
 
                         bat "docker logout"
@@ -94,5 +111,14 @@ pipeline {
         always {
             archiveArtifacts artifacts: 'changed_services.txt', fingerprint: true
         }
+<<<<<<< HEAD
+        failure {
+            echo 'El pipeline falló. Verifica los logs para más detalles.'
+        }
+        success {
+            echo 'Pipeline ejecutado exitosamente.'
+        }
+=======
+>>>>>>> origin/main
     }
 }
