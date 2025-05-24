@@ -61,19 +61,19 @@ pipeline {
 
                             dir(service) {
                                 if (fileExists("gradlew.bat")) {
-                                    bat "gradlew.bat dockerfile --no-daemon"
+                                    bat "gradlew.bat build -x test"
                                 } else {
                                     echo "No se encontró gradlew en ${service}, omitiendo generación de Dockerfile."
                                 }
                             }
 
-                            def dockerfilePath = "${service}/build/docker/main/Dockerfile"
-                            def dockerContext = "${service}/build/docker"
+                            def dockerfilePath = "${service}/Dockerfile"
+                            def dockerContext = "${service}"
                             def imageName = "${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}"
 
                             if (fileExists(dockerfilePath)) {
                                 bat """
-                                    docker buildx build --platform linux/amd64 ^
+                                    docker buildx build --platform linux/arm64 ^
                                       -t ${imageName} ^
                                       --push ^
                                       -f "${dockerfilePath}" "${dockerContext}"
