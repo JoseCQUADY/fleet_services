@@ -18,12 +18,16 @@ pipeline {
                 script {
                     bat 'git fetch origin'
 
-                    def diffFiles = bat(script: "git diff --name-only ${params.BASE_BRANCH}", returnStdout: true).trim().split('\r?\n')
+                    def diffRaw = bat(script: "git diff --name-only ${params.BASE_BRANCH}", returnStdout: true).trim()
+                    def diffFiles = diffRaw.tokenize('\n') // Maneja \r\n y \n
+
+                    echo "Archivos modificados:\n${diffFiles.join('\n')}"
+
                     def services = env.SERVICES_STRING.split(' ')
                     def changedServices = []
 
                     for (service in services) {
-                        if (diffFiles.any { it.startsWith("${service}\\") }) {
+                        if (diffFiles.any { it.startsWith("${service}/") }) { // Uso de '/' correcto para Git
                             changedServices << service
                         }
                     }
@@ -35,9 +39,9 @@ pipeline {
                         echo "Servicios modificados: ${changedServices.join(', ')}"
                         writeFile file: 'changed_services.txt', text: changedServices.join(' ')
                     }
-                } // cierre script
-            } // cierre steps
-        } // cierre stage Detectar servicios cambiados
+                }
+            }
+        }
 
         stage('Construir y subir imágenes Docker') {
             when {
@@ -63,8 +67,8 @@ pipeline {
                                 }
                             }
 
-                            def dockerfilePath = "${service}\\build\\docker\\Dockerfile"
-                            def dockerContext = "${service}\\build\\docker"
+                            def dockerfilePath = "${service}/build/docker/main/Dockerfile"
+                            def dockerContext = "${service}/build/docker"
                             def imageName = "${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}"
 
                             if (fileExists(dockerfilePath)) {
@@ -77,14 +81,14 @@ pipeline {
                             } else {
                                 echo "No se encontró Dockerfile en ${dockerfilePath}, se omite la construcción."
                             }
-                        } // cierre changedServices.each
+                        }
 
                         bat "docker logout"
-                    } // cierre withCredentials
-                } // cierre script
-            } // cierre steps
-        } // cierre stage Construir y subir imágenes Docker
-    } // cierre stages
+                    }
+                }
+            }
+        }
+    }
 
     post {
         always {
@@ -94,8 +98,9 @@ pipeline {
         failure {
             echo 'El pipeline falló. Verifica los logs para más detalles.'
         }
+
         success {
             echo 'Pipeline ejecutado exitosamente.'
         }
     }
-} // cierre pipeline
+}
