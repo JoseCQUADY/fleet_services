@@ -1,0 +1,57 @@
+# Compilados Java
+*.class
+
+# Archivos generados
+*.log
+*.tmp
+*.bak
+
+# Directorios comunes de build
+/build/
+/out/
+/target/
+
+# Micronaut - archivos generados por annotation processing
+**/META-INF/**/io.micronaut.*
+
+# IntelliJ IDEA / Android Studio
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# VS Code
+.vscode/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Archivos de configuración de entorno
+*.env
+.env*
+
+# Jenkins (por si hay carpetas locales)
+*.jenkins/
+*.jenkins_cache/
+
+# Windows path length workaround (evita agregar archivos generados con rutas largas)
+ms-*/build/
+
+# Logs del sistema
+*.pid
+*.seed
+*.pid.lock
