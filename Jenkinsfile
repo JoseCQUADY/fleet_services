@@ -67,7 +67,7 @@ pipeline {
                                 }
                             }
 
-                            def dockerfilePath = "${service}/build/docker/Dockerfile"
+                            def dockerfilePath = "${service}/build/docker/main/Dockerfile"
                             def dockerContext = "${service}/build/docker"
                             def imageName = "${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}"
 
