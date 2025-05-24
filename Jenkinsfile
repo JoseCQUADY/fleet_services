@@ -65,13 +65,21 @@ pipeline {
 
                         changedServices.each { servicio ->
                             echo "Iniciando construcción y subida para ${servicio}..."
+
+                            // 1. Genera el Dockerfile
                             dir("${servicio}") {
-                                bat "gradlew dockerBuild --no-daemon"
+                                bat "gradlew dockerfile --no-daemon"
                             }
 
+                            // 2. Construye y sube la imagen con buildx (linux/amd64)
+                            def dockerfilePath = "${servicio}/build/docker/Dockerfile"
+                            def contextPath = "${servicio}/build/docker"
+
                             bat """
-                                docker tag ${servicio.toLowerCase()}:latest ${env.DOCKER_HUB_USER}/${servicio}:${env.IMAGE_TAG}
-                                docker push ${env.DOCKER_HUB_USER}/${servicio}:${env.IMAGE_TAG}
+                                docker buildx build --platform linux/amd64 `
+                                  -t ${env.DOCKER_HUB_USER}/${servicio}:${env.IMAGE_TAG} `
+                                  --push `
+                                  -f "${dockerfilePath}" "${contextPath}"
                             """
                         }
 
@@ -79,6 +87,12 @@ pipeline {
                     }
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'changed_services.txt', fingerprint: true
         }
     }
 }
