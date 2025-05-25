@@ -17,7 +17,7 @@ pipeline {
         stage('Obtener servicios modificados') {
             steps {
                 copyArtifacts(
-                    projectName: 'fleet-system/development',
+                    projectName: 'fleet-system',
                     selector: specific('65') // Ajusta según sea necesario
                 )
             }
@@ -27,7 +27,6 @@ pipeline {
             steps {
                 bat '''
                     @echo off
-
                     setlocal enabledelayedexpansion
 
                     if not exist changed_services.txt (
@@ -37,8 +36,8 @@ pipeline {
 
                     for /f %%S in (changed_services.txt) do (
                         set SERVICE=%%S
-                        
-                        REM Asignar nombre de contenedor y puerto según el servicio
+
+                        REM Asignar nombre de contenedor y puerto
                         if "%%S"=="ms-api-gateway" (
                             set CONTAINER=gateway
                             set PORT=8080
@@ -67,14 +66,22 @@ pipeline {
 
                         echo ===========================
                         echo Desplegando !SERVICE!
-                        echo Nombre contenedor: !CONTAINER!
+                        echo Contenedor: !CONTAINER!
                         echo Puerto: !PORT!
                         echo ===========================
 
-                        ssh -i key.pem opc@%REMOTE_IP% sudo docker pull %DOCKER_USER%/!SERVICE!:%IMAGE_TAG%
-                        ssh -i key.pem opc@%REMOTE_IP% sudo docker stop !CONTAINER!
-                        ssh -i key.pem opc@%REMOTE_IP% sudo docker rm !CONTAINER!
-                        ssh -i key.pem opc@%REMOTE_IP% sudo docker run -d --name !CONTAINER! --network devops -p !PORT!:8080 %DOCKER_USER%/!SERVICE!:%IMAGE_TAG%
+                        ssh -i key.pem opc@%REMOTE_IP% docker pull %DOCKER_USER%/!SERVICE!:%IMAGE_TAG%
+
+                        REM Verificar si el contenedor existe antes de detenerlo y eliminarlo
+                        ssh -i key.pem opc@%REMOTE_IP% docker ps -a -q -f name=^/!CONTAINER!$ > nul && (
+                            echo Contenedor !CONTAINER! existe. Deteniéndolo y eliminándolo...
+                            ssh -i key.pem opc@%REMOTE_IP% docker stop !CONTAINER!
+                            ssh -i key.pem opc@%REMOTE_IP% docker rm !CONTAINER!
+                        ) || (
+                            echo Contenedor !CONTAINER! no existe. Continuando...
+                        )
+
+                        ssh -i key.pem opc@%REMOTE_IP% docker run -d --name !CONTAINER! --network devops -p !PORT!:8080 %DOCKER_USER%/!SERVICE!:%IMAGE_TAG%
                     )
                 '''
             }
