@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        REMOTE_IP = '40.233.6.181'               
-        DOCKER_USER = 'jcq12'                     
-        IMAGE_TAG = 'latest'                         
+        REMOTE_IP = '40.233.6.181'
+        DOCKER_USER = 'jcq12'
+        IMAGE_TAG = 'latest'
     }
 
     stages {
@@ -34,13 +34,14 @@ pipeline {
                         exit /b 0
                     )
 
-                    for /f %%S in (changed_services.txt) do (
+                    set /p SERVICES=<changed_services.txt
+                    for %%S in (!SERVICES!) do (
                         call :deployService %%S
                     )
 
                     exit /b 0
 
-:deployService
+                :deployService
                     set SERVICE=%1
 
                     if "%SERVICE%"=="ms-api-gateway" (
