@@ -47,13 +47,14 @@ pipeline {
                 :deployService
                 set SERVICE=%1
 
+                rem Asignaciones paralelas
                 set SERVICES_LIST=ms-api-gateway ms-auth-service ms-administrator-service ms-invitation-service ms-vehicle-service ms-driver-service ms-route-service
                 set CONTAINERS_LIST=gateway auth administrator code vehicle driver route
                 set PORTS_LIST=8080 8081 8082 8083 8084 8085 8086
 
                 set INDEX=0
                 for %%A in (%SERVICES_LIST%) do (
-                    if "%%A"=="%SERVICE%" (
+                    if /i "%%A"=="%SERVICE%" (
                         for /f "tokens=%INDEX% delims= " %%C in ("%CONTAINERS_LIST%") do set CONTAINER=%%C
                         for /f "tokens=%INDEX% delims= " %%P in ("%PORTS_LIST%") do set PORT=%%P
                         goto :matched
@@ -83,7 +84,6 @@ pipeline {
 
                 ssh -i key.pem opc@%REMOTE_IP% sudo docker run -d --name %CONTAINER% --network devops -p %PORT%:%PORT% %DOCKER_USER%/%SERVICE%:%IMAGE_TAG%
 
-                rem Conectar gateway también a red-web
                 if "%SERVICE%"=="ms-api-gateway" (
                     ssh -i key.pem opc@%REMOTE_IP% sudo docker network connect red-web gateway
                 )
