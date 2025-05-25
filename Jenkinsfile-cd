@@ -18,9 +18,7 @@ pipeline {
             steps {
                 copyArtifacts(
                     projectName: 'fleet-system/development',
-                    selector: specific('development'),
-                    filter: 'changed_services.txt',
-                    flatten: true
+                    selector: specific('65') 
                 )
             }
         }
