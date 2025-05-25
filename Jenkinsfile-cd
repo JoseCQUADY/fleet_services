@@ -11,7 +11,7 @@ pipeline {
         stage('Obtener servicios modificados') {
             steps {
                 copyArtifacts(
-                    projectName: 'fleet-system/development',  // <- Cambia esto por el nombre de tu job CI
+                    projectName: 'fleet-system/development',
                     selector: lastSuccessful(),
                     flatten: true
                 )
@@ -30,37 +30,47 @@ pipeline {
                     exit /b 0
                 )
 
-                for /f %%S in (changed_services.txt) do (
-                    set SERVICE=%%S
-                    call :deployService %%S
-                )
-                exit /b 0
+                powershell -NoProfile -ExecutionPolicy Bypass -Command "& {
+                    $serviceMap = @{
+                        'ms-api-gateway'         = @{ name = 'gateway';        port = 8080 }
+                        'ms-auth-service'        = @{ name = 'auth';           port = 8081 }
+                        'ms-administrator-service' = @{ name = 'administrator'; port = 8082 }
+                        'ms-invitation-service'  = @{ name = 'code';           port = 8083 }
+                        'ms-vehicle-service'     = @{ name = 'vehicle';        port = 8084 }
+                        'ms-driver-service'      = @{ name = 'driver';         port = 8085 }
+                        'ms-route-service'       = @{ name = 'route';          port = 8086 }
+                    }
 
-                :deployService
-                set SERVICE=%1
+                    $ip = '40.233.6.181'
+                    $dockerUser = '%DOCKER_HUB_USER%'
+                    $imageTag = '%IMAGE_TAG%'
 
-                rem Mapea nombre y puerto según el servicio
-                if "%SERVICE%"=="ms-api-gateway" set NAME=gateway& set PORT=8080
-                if "%SERVICE%"=="ms-auth-service" set NAME=auth& set PORT=8081
-                if "%SERVICE%"=="ms-administrator-service" set NAME=administrator& set PORT=8082
-                if "%SERVICE%"=="ms-invitation-service" set NAME=code& set PORT=8083
-                if "%SERVICE%"=="ms-vehicle-service" set NAME=vehicle& set PORT=8084
-                if "%SERVICE%"=="ms-driver-service" set NAME=driver& set PORT=8085
-                if "%SERVICE%"=="ms-route-service" set NAME=route& set PORT=8086
+                    Get-Content changed_services.txt | ForEach-Object {
+                        $service = $_.Trim()
+                        if (-not $serviceMap.ContainsKey($service)) {
+                            Write-Host "Servicio desconocido: $service. Saltando..."
+                            return
+                        }
 
-                echo Desplegando servicio: %SERVICE% como contenedor %NAME% en puerto %PORT%
+                        $name = $serviceMap[$service].name
+                        $port = $serviceMap[$service].port
 
-                ssh -i key.pem -o StrictHostKeyChecking=no opc@40.233.6.181 ^
-                "sudo docker pull %DOCKER_HUB_USER%/%SERVICE%:%IMAGE_TAG% && ^
-                sudo docker rm -f %NAME% || true && ^
-                sudo docker run -d --name %NAME% --network devops -p %PORT%:%PORT% %DOCKER_HUB_USER%/%SERVICE%:%IMAGE_TAG%"
+                        Write-Host "Desplegando $service como contenedor $name en puerto $port..."
 
-                if "%SERVICE%"=="ms-api-gateway" (
-                    echo Conectando gateway a red web...
-                    ssh -i key.pem -o StrictHostKeyChecking=no opc@40.233.6.181 "sudo docker network connect web gateway"
-                )
+                        $deployCommand = @"
+sudo docker pull $dockerUser/$service:$imageTag && \
+sudo docker rm -f $name || true && \
+sudo docker run -d --name $name --network devops -p $port:$port $dockerUser/$service:$imageTag
+"@
 
-                goto :eof
+                        ssh -i key.pem -o StrictHostKeyChecking=no opc@$ip "$deployCommand"
+
+                        if ($service -eq 'ms-api-gateway') {
+                            Write-Host "Conectando gateway a red web..."
+                            ssh -i key.pem -o StrictHostKeyChecking=no opc@$ip "sudo docker network connect web gateway"
+                        }
+                    }
+                }"
                 '''
             }
         }
