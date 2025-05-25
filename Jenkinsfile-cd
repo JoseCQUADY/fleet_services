@@ -17,8 +17,8 @@ pipeline {
         stage('Obtener servicios modificados') {
             steps {
                 copyArtifacts(
-                    projectName: 'fleet-system/development',
-                    selector: specific('65') 
+                    projectName: 'fleet-system',
+                    selector: specific('65') // Ajusta según sea necesario
                 )
             }
         }
@@ -28,20 +28,53 @@ pipeline {
                 bat '''
                     @echo off
 
+                    setlocal enabledelayedexpansion
+
                     if not exist changed_services.txt (
                         echo No hay servicios modificados.
                         exit /b 0
                     )
 
                     for /f %%S in (changed_services.txt) do (
+                        set SERVICE=%%S
+                        
+                        REM Asignar nombre de contenedor y puerto según el servicio
+                        if "%%S"=="ms-api-gateway" (
+                            set CONTAINER=gateway
+                            set PORT=8080
+                        ) else if "%%S"=="ms-auth-service" (
+                            set CONTAINER=auth
+                            set PORT=8081
+                        ) else if "%%S"=="ms-administrator-service" (
+                            set CONTAINER=administrator
+                            set PORT=8082
+                        ) else if "%%S"=="ms-invitation-service" (
+                            set CONTAINER=code
+                            set PORT=8083
+                        ) else if "%%S"=="ms-vehicle-service" (
+                            set CONTAINER=vehicle
+                            set PORT=8084
+                        ) else if "%%S"=="ms-driver-service" (
+                            set CONTAINER=driver
+                            set PORT=8085
+                        ) else if "%%S"=="ms-route-service" (
+                            set CONTAINER=route
+                            set PORT=8086
+                        ) else (
+                            echo Servicio %%S no reconocido. Saltando...
+                            continue
+                        )
+
                         echo ===========================
-                        echo Desplegando servicio: %%S
+                        echo Desplegando !SERVICE!
+                        echo Nombre contenedor: !CONTAINER!
+                        echo Puerto: !PORT!
                         echo ===========================
 
-                        ssh -i key.pem opc@%REMOTE_IP% sudo docker pull %DOCKER_USER%/%%S:%IMAGE_TAG%
-                        ssh -i key.pem opc@%REMOTE_IP% sudo docker stop %%S
-                        ssh -i key.pem opc@%REMOTE_IP% sudo docker rm %%S
-                        ssh -i key.pem opc@%REMOTE_IP% sudo docker run -d --name %%S -p 8080:8080 %DOCKER_USER%/%%S:%IMAGE_TAG%
+                        ssh -i key.pem opc@%REMOTE_IP% docker pull %DOCKER_USER%/!SERVICE!:%IMAGE_TAG%
+                        ssh -i key.pem opc@%REMOTE_IP% docker stop !CONTAINER!
+                        ssh -i key.pem opc@%REMOTE_IP% docker rm !CONTAINER!
+                        ssh -i key.pem opc@%REMOTE_IP% docker run -d --name !CONTAINER! --network devops -p !PORT!:8080 %DOCKER_USER%/!SERVICE!:%IMAGE_TAG%
                     )
                 '''
             }
