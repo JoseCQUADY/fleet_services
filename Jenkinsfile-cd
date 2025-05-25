@@ -2,75 +2,47 @@ pipeline {
     agent any
 
     environment {
-        SSH_FILE = credentials('oracle-ssh-password')
-        DOCKER_HUB_USER = 'jcq12'
+        DOCKER_USER = 'jcq12'
         IMAGE_TAG = 'latest'
+        REMOTE_IP = '40.233.6.181'
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Obtener servicios modificados') {
             steps {
                 copyArtifacts(
-                    projectName: 'fleet-system/development',
-                    selector: lastSuccessful(),
-                    flatten: true
+                    projectName: 'fleet-system',
+                    selector: specific('65') // Ajusta si usas otro build selector
                 )
             }
         }
 
-        stage('Desplegar microservicios modificados') {
+        stage('Desplegar servicios modificados') {
             steps {
                 bat '''
-                copy "%SSH_FILE%" key.pem
-                powershell -Command "icacls key.pem /inheritance:r"
-                powershell -Command "icacls key.pem /grant:r %USERNAME%:F"
+                    @echo off
 
-                if not exist changed_services.txt (
-                    echo No hay servicios modificados. Nada que desplegar.
-                    exit /b 0
-                )
+                    if not exist changed_services.txt (
+                        echo No hay servicios modificados.
+                        exit /b 0
+                    )
 
-                powershell -NoProfile -ExecutionPolicy Bypass -Command "& {
-                    $serviceMap = @{
-                        'ms-api-gateway'         = @{ name = 'gateway';        port = 8080 }
-                        'ms-auth-service'        = @{ name = 'auth';           port = 8081 }
-                        'ms-administrator-service' = @{ name = 'administrator'; port = 8082 }
-                        'ms-invitation-service'  = @{ name = 'code';           port = 8083 }
-                        'ms-vehicle-service'     = @{ name = 'vehicle';        port = 8084 }
-                        'ms-driver-service'      = @{ name = 'driver';         port = 8085 }
-                        'ms-route-service'       = @{ name = 'route';          port = 8086 }
-                    }
+                    for /f %%S in (changed_services.txt) do (
+                        echo ===========================
+                        echo Desplegando servicio: %%S
+                        echo ===========================
 
-                    $ip = '40.233.6.181'
-                    $dockerUser = '%DOCKER_HUB_USER%'
-                    $imageTag = '%IMAGE_TAG%'
-
-                    Get-Content changed_services.txt | ForEach-Object {
-                        $service = $_.Trim()
-                        if (-not $serviceMap.ContainsKey($service)) {
-                            Write-Host "Servicio desconocido: $service. Saltando..."
-                            return
-                        }
-
-                        $name = $serviceMap[$service].name
-                        $port = $serviceMap[$service].port
-
-                        Write-Host "Desplegando $service como contenedor $name en puerto $port..."
-
-                        $deployCommand = @"
-sudo docker pull $dockerUser/$service:$imageTag && \
-sudo docker rm -f $name || true && \
-sudo docker run -d --name $name --network devops -p $port:$port $dockerUser/$service:$imageTag
-"@
-
-                        ssh -i key.pem -o StrictHostKeyChecking=no opc@$ip "$deployCommand"
-
-                        if ($service -eq 'ms-api-gateway') {
-                            Write-Host "Conectando gateway a red web..."
-                            ssh -i key.pem -o StrictHostKeyChecking=no opc@$ip "sudo docker network connect web gateway"
-                        }
-                    }
-                }"
+                        ssh -i key.pem opc@%REMOTE_IP% docker pull %DOCKER_USER%/%%S:%IMAGE_TAG%
+                        ssh -i key.pem opc@%REMOTE_IP% docker stop %%S
+                        ssh -i key.pem opc@%REMOTE_IP% docker rm %%S
+                        ssh -i key.pem opc@%REMOTE_IP% docker run -d --name %%S -p 8080:8080 %DOCKER_USER%/%%S:%IMAGE_TAG%
+                    )
                 '''
             }
         }
