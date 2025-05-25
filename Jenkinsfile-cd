@@ -47,17 +47,31 @@ pipeline {
                 :deployService
                 set SERVICE=%1
 
-                rem Asignar contenedor y puerto basado en el nombre del servicio
-                if "%SERVICE%"=="ms-api-gateway"       (set CONTAINER=gateway      & set PORT=8080) else ^
-                if "%SERVICE%"=="ms-auth-service"      (set CONTAINER=auth         & set PORT=8081) else ^
-                if "%SERVICE%"=="ms-administrator-service" (set CONTAINER=administrator & set PORT=8082) else ^
-                if "%SERVICE%"=="ms-invitation-service"    (set CONTAINER=code      & set PORT=8083) else ^
-                if "%SERVICE%"=="ms-vehicle-service"   (set CONTAINER=vehicle      & set PORT=8084) else ^
-                if "%SERVICE%"=="ms-driver-service"    (set CONTAINER=driver       & set PORT=8085) else ^
-                if "%SERVICE%"=="ms-route-service"     (set CONTAINER=route        & set PORT=8086) else (
-                    echo Servicio %SERVICE% no reconocido. Saltando...
-                    goto :eof
-                )
+                    if "%SERVICE%"=="ms-api-gateway" (
+                        set CONTAINER=gateway
+                        set PORT=8080
+                    ) else if "%SERVICE%"=="ms-auth-service" (
+                        set CONTAINER=auth
+                        set PORT=8081
+                    ) else if "%SERVICE%"=="ms-administrator-service" (
+                        set CONTAINER=administrator
+                        set PORT=8082
+                    ) else if "%SERVICE%"=="ms-invitation-service" (
+                        set CONTAINER=code
+                        set PORT=8083
+                    ) else if "%SERVICE%"=="ms-vehicle-service" (
+                        set CONTAINER=vehicle
+                        set PORT=8084
+                    ) else if "%SERVICE%"=="ms-driver-service" (
+                        set CONTAINER=driver
+                        set PORT=8085
+                    ) else if "%SERVICE%"=="ms-route-service" (
+                        set CONTAINER=route
+                        set PORT=8086
+                    ) else (
+                        echo Servicio %SERVICE% no reconocido. Saltando...
+                        goto :eof
+                    )
                     echo ===========================
                     echo Desplegando %SERVICE%
                     echo Contenedor: %CONTAINER%
