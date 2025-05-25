@@ -70,7 +70,7 @@ pipeline {
                         echo Puerto: !PORT!
                         echo ===========================
 
-                        ssh -i key.pem opc@%REMOTE_IP% docker pull %DOCKER_USER%/!SERVICE!:%IMAGE_TAG%
+                        ssh -i key.pem opc@%REMOTE_IP% sudo docker pull %DOCKER_USER%/!SERVICE!:%IMAGE_TAG%
 
                         REM Verificar si el contenedor existe antes de detenerlo y eliminarlo
                         ssh -i key.pem opc@%REMOTE_IP% sudo docker ps -a -q -f name=^/!CONTAINER!$ > nul && (
