@@ -47,53 +47,47 @@ pipeline {
                 :deployService
                 set SERVICE=%1
 
-                    if "%SERVICE%"=="ms-api-gateway" (
-                        set CONTAINER=gateway
-                        set PORT=8080
-                    ) else if "%SERVICE%"=="ms-auth-service" (
-                        set CONTAINER=auth
-                        set PORT=8081
-                    ) else if "%SERVICE%"=="ms-administrator-service" (
-                        set CONTAINER=administrator
-                        set PORT=8082
-                    ) else if "%SERVICE%"=="ms-invitation-service" (
-                        set CONTAINER=code
-                        set PORT=8083
-                    ) else if "%SERVICE%"=="ms-vehicle-service" (
-                        set CONTAINER=vehicle
-                        set PORT=8084
-                    ) else if "%SERVICE%"=="ms-driver-service" (
-                        set CONTAINER=driver
-                        set PORT=8085
-                    ) else if "%SERVICE%"=="ms-route-service" (
-                        set CONTAINER=route
-                        set PORT=8086
-                    ) else (
-                        echo Servicio %SERVICE% no reconocido. Saltando...
-                        goto :eof
+                set SERVICES_LIST=ms-api-gateway ms-auth-service ms-administrator-service ms-invitation-service ms-vehicle-service ms-driver-service ms-route-service
+                set CONTAINERS_LIST=gateway auth administrator code vehicle driver route
+                set PORTS_LIST=8080 8081 8082 8083 8084 8085 8086
+
+                set INDEX=0
+                for %%A in (%SERVICES_LIST%) do (
+                    if "%%A"=="%SERVICE%" (
+                        for /f "tokens=%INDEX% delims= " %%C in ("%CONTAINERS_LIST%") do set CONTAINER=%%C
+                        for /f "tokens=%INDEX% delims= " %%P in ("%PORTS_LIST%") do set PORT=%%P
+                        goto :matched
                     )
-                    echo ===========================
-                    echo Desplegando %SERVICE%
-                    echo Contenedor: %CONTAINER%
-                    echo Puerto: %PORT%
-                    echo ===========================
+                    set /a INDEX+=1
+                )
 
-                    ssh -i key.pem opc@%REMOTE_IP% sudo docker pull %DOCKER_USER%/%SERVICE%:%IMAGE_TAG%
+                echo Servicio %SERVICE% no reconocido. Saltando...
+                goto :eof
 
-                    ssh -i key.pem opc@%REMOTE_IP% sudo docker ps -a -q -f name=^/%CONTAINER%$ > nul && (
-                        echo Contenedor %CONTAINER% existe. Deteniéndolo y eliminándolo...
-                        ssh -i key.pem opc@%REMOTE_IP% sudo docker stop %CONTAINER%
-                        ssh -i key.pem opc@%REMOTE_IP% sudo docker rm %CONTAINER%
-                    ) || (
-                        echo Contenedor %CONTAINER% no existe. Continuando...
-                    )
+                :matched
+                echo ===========================
+                echo Desplegando %SERVICE%
+                echo Contenedor: %CONTAINER%
+                echo Puerto: %PORT%
+                echo ===========================
 
-                    ssh -i key.pem opc@%REMOTE_IP% sudo docker run -d --name %CONTAINER% --network devops -p %PORT%:%PORT% %DOCKER_USER%/%SERVICE%:%IMAGE_TAG%
-                    rem Conectar gateway también a red-web
-                    if "%SERVICE%"=="ms-api-gateway" (
+                ssh -i key.pem opc@%REMOTE_IP% sudo docker pull %DOCKER_USER%/%SERVICE%:%IMAGE_TAG%
+
+                ssh -i key.pem opc@%REMOTE_IP% sudo docker ps -a -q -f name=^/%CONTAINER%$ > nul && (
+                    echo Contenedor %CONTAINER% existe. Deteniéndolo y eliminándolo...
+                    ssh -i key.pem opc@%REMOTE_IP% sudo docker stop %CONTAINER%
+                    ssh -i key.pem opc@%REMOTE_IP% sudo docker rm %CONTAINER%
+                ) || (
+                    echo Contenedor %CONTAINER% no existe. Continuando...
+                )
+
+                ssh -i key.pem opc@%REMOTE_IP% sudo docker run -d --name %CONTAINER% --network devops -p %PORT%:%PORT% %DOCKER_USER%/%SERVICE%:%IMAGE_TAG%
+
+                rem Conectar gateway también a red-web
+                if "%SERVICE%"=="ms-api-gateway" (
                     ssh -i key.pem opc@%REMOTE_IP% sudo docker network connect red-web gateway
-                    )
-                    goto :eof
+                )
+                goto :eof
                 '''
             }
         }
