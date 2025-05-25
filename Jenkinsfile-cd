@@ -17,7 +17,7 @@ pipeline {
         stage('Obtener servicios modificados') {
             steps {
                 copyArtifacts(
-                    projectName: 'fleet-system',
+                    projectName: 'fleet-system/development',
                     filter: 'changed_services.txt',
                     selector: specific('development')
                 )
