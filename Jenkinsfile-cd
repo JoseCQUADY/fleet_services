@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_USER = 'jcq12'
         IMAGE_TAG = 'latest'
-        REMOTE_IP = '40.233.6.181'
+        REMOTE_IP = '40.233.6.181' 
     }
 
     stages {
@@ -17,8 +17,10 @@ pipeline {
         stage('Obtener servicios modificados') {
             steps {
                 copyArtifacts(
-                    projectName: 'fleet-system/development',
-                    selector: specific('65')
+                    projectName: 'fleet-system',
+                    selector: specific('development'),
+                    filter: 'changed_services.txt',
+                    flatten: true
                 )
             }
         }
@@ -34,55 +36,58 @@ pipeline {
                         exit /b 0
                     )
 
-                    for /f %%S in (changed_services.txt) do (
-                        set SERVICE=%%S
+                    for /f %%S in (changed_services.txt) do call :deployService %%S
 
-                        REM Asignar nombre de contenedor y puerto
-                        if "%%S"=="ms-api-gateway" (
-                            set CONTAINER=gateway
-                            set PORT=8080
-                        ) else if "%%S"=="ms-auth-service" (
-                            set CONTAINER=auth
-                            set PORT=8081
-                        ) else if "%%S"=="ms-administrator-service" (
-                            set CONTAINER=administrator
-                            set PORT=8082
-                        ) else if "%%S"=="ms-invitation-service" (
-                            set CONTAINER=code
-                            set PORT=8083
-                        ) else if "%%S"=="ms-vehicle-service" (
-                            set CONTAINER=vehicle
-                            set PORT=8084
-                        ) else if "%%S"=="ms-driver-service" (
-                            set CONTAINER=driver
-                            set PORT=8085
-                        ) else if "%%S"=="ms-route-service" (
-                            set CONTAINER=route
-                            set PORT=8086
-                        ) else (
-                            echo Servicio %%S no reconocido. Saltando...
-                            continue
-                        )
+                    exit /b 0
 
-                        echo ===========================
-                        echo Desplegando !SERVICE!
-                        echo Contenedor: !CONTAINER!
-                        echo Puerto: !PORT!
-                        echo ===========================
+                    :deployService
+                    set SERVICE=%1
 
-                        ssh -i key.pem opc@%REMOTE_IP% sudo docker pull %DOCKER_USER%/!SERVICE!:%IMAGE_TAG%
-
-                        REM Verificar si el contenedor existe antes de detenerlo y eliminarlo
-                        ssh -i key.pem opc@%REMOTE_IP% sudo docker ps -a -q -f name=^/!CONTAINER!$ > nul && (
-                            echo Contenedor !CONTAINER! existe. Deteniéndolo y eliminándolo...
-                            ssh -i key.pem opc@%REMOTE_IP% sudo docker stop !CONTAINER!
-                            ssh -i key.pem opc@%REMOTE_IP% sudo docker rm !CONTAINER!
-                        ) || (
-                            echo Contenedor !CONTAINER! no existe. Continuando...
-                        )
-
-                        ssh -i key.pem opc@%REMOTE_IP% sudo docker run -d --name !CONTAINER! --network devops -p !PORT!:!PORT! %DOCKER_USER%/!SERVICE!:%IMAGE_TAG%
+                    if "%SERVICE%"=="ms-api-gateway" (
+                        set CONTAINER=gateway
+                        set PORT=8080
+                    ) else if "%SERVICE%"=="ms-auth-service" (
+                        set CONTAINER=auth
+                        set PORT=8081
+                    ) else if "%SERVICE%"=="ms-administrator-service" (
+                        set CONTAINER=administrator
+                        set PORT=8082
+                    ) else if "%SERVICE%"=="ms-invitation-service" (
+                        set CONTAINER=code
+                        set PORT=8083
+                    ) else if "%SERVICE%"=="ms-vehicle-service" (
+                        set CONTAINER=vehicle
+                        set PORT=8084
+                    ) else if "%SERVICE%"=="ms-driver-service" (
+                        set CONTAINER=driver
+                        set PORT=8085
+                    ) else if "%SERVICE%"=="ms-route-service" (
+                        set CONTAINER=route
+                        set PORT=8086
+                    ) else (
+                        echo Servicio %SERVICE% no reconocido. Saltando...
+                        exit /b 0
                     )
+
+                    echo ===========================
+                    echo Desplegando %SERVICE%
+                    echo Contenedor: %CONTAINER%
+                    echo Puerto: %PORT%
+                    echo ===========================
+
+                    ssh -i key.pem opc@%REMOTE_IP% sudo docker pull %DOCKER_USER%/%SERVICE%:%IMAGE_TAG%
+
+                    ssh -i key.pem opc@%REMOTE_IP% sudo docker ps -a -q -f name=^/%CONTAINER%$ > nul && (
+                        echo Contenedor %CONTAINER% existe. Deteniéndolo y eliminándolo...
+                        ssh -i key.pem opc@%REMOTE_IP% sudo docker stop %CONTAINER%
+                        ssh -i key.pem opc@%REMOTE_IP% sudo docker rm %CONTAINER%
+                    ) || (
+                        echo Contenedor %CONTAINER% no existe. Continuando...
+                    )
+
+                    ssh -i key.pem opc@%REMOTE_IP% sudo docker run -d --name %CONTAINER% --network devops -p %PORT%:%PORT% %DOCKER_USER%/%SERVICE%:%IMAGE_TAG%
+
+                    exit /b 0
                 '''
             }
         }
