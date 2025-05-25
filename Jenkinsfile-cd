@@ -1,4 +1,4 @@
-pipeline {
+ pipeline {
     agent any
 
     environment {
@@ -47,49 +47,52 @@ pipeline {
                 :deployService
                 set SERVICE=%1
 
-                rem Asignaciones paralelas
-                set SERVICES_LIST=ms-api-gateway ms-auth-service ms-administrator-service ms-invitation-service ms-vehicle-service ms-driver-service ms-route-service
-                set CONTAINERS_LIST=gateway auth administrator code vehicle driver route
-                set PORTS_LIST=8080 8081 8082 8083 8084 8085 8086
+rem Tabla de servicios, contenedores y puertos
+set SERVICES_LIST=ms-api-gateway ms-auth-service ms-administrator-service ms-invitation-service ms-vehicle-service ms-driver-service ms-route-service
+set CONTAINERS_LIST=gateway auth administrator code vehicle driver route
+set PORTS_LIST=8080 8081 8082 8083 8084 8085 8086
 
-                set INDEX=0
-                for %%A in (%SERVICES_LIST%) do (
-                    if /i "%%A"=="%SERVICE%" (
-                        for /f "tokens=%INDEX% delims= " %%C in ("%CONTAINERS_LIST%") do set CONTAINER=%%C
-                        for /f "tokens=%INDEX% delims= " %%P in ("%PORTS_LIST%") do set PORT=%%P
-                        goto :matched
+set INDEX=0
+for %%S in (%SERVICES_LIST%) do (
+    if /i "%%S"=="%SERVICE%" (
+        for /f "tokens=%INDEX% delims= " %%C in ("%CONTAINERS_LIST%") do set CONTAINER=%%C
+        for /f "tokens=%INDEX% delims= " %%P in ("%PORTS_LIST%") do set PORT=%%P
+        goto :matched
+    )
+    set /a INDEX+=1
+)
+
+echo Servicio %SERVICE% no reconocido. Saltando...
+goto :eof
+
+:matched
+
+                    echo ===========================
+                    echo Desplegando %SERVICE%
+                    echo Contenedor: %CONTAINER%
+                    echo Puerto: %PORT%
+                    echo ===========================
+
+                    ssh -i key.pem opc@%REMOTE_IP% sudo docker pull %DOCKER_USER%/%SERVICE%:%IMAGE_TAG%
+
+                    ssh -i key.pem opc@%REMOTE_IP% sudo docker ps -a -q -f name=^/%CONTAINER%$ > nul && (
+                        echo Contenedor %CONTAINER% existe. Deteniéndolo y eliminándolo...
+                        ssh -i key.pem opc@%REMOTE_IP% sudo docker stop %CONTAINER%
+                        ssh -i key.pem opc@%REMOTE_IP% sudo docker rm %CONTAINER%
+                    ) || (
+                        echo Contenedor %CONTAINER% no existe. Continuando...
                     )
-                    set /a INDEX+=1
-                )
 
-                echo Servicio %SERVICE% no reconocido. Saltando...
-                goto :eof
-
-                :matched
-                echo ===========================
-                echo Desplegando %SERVICE%
-                echo Contenedor: %CONTAINER%
-                echo Puerto: %PORT%
-                echo ===========================
-
-                ssh -i key.pem opc@%REMOTE_IP% sudo docker pull %DOCKER_USER%/%SERVICE%:%IMAGE_TAG%
-
-                ssh -i key.pem opc@%REMOTE_IP% sudo docker ps -a -q -f name=^/%CONTAINER%$ > nul && (
-                    echo Contenedor %CONTAINER% existe. Deteniéndolo y eliminándolo...
-                    ssh -i key.pem opc@%REMOTE_IP% sudo docker stop %CONTAINER%
-                    ssh -i key.pem opc@%REMOTE_IP% sudo docker rm %CONTAINER%
-                ) || (
-                    echo Contenedor %CONTAINER% no existe. Continuando...
-                )
-
-                ssh -i key.pem opc@%REMOTE_IP% sudo docker run -d --name %CONTAINER% --network devops -p %PORT%:%PORT% %DOCKER_USER%/%SERVICE%:%IMAGE_TAG%
-
-                if "%SERVICE%"=="ms-api-gateway" (
+                    ssh -i key.pem opc@%REMOTE_IP% sudo docker run -d --name %CONTAINER% --network devops -p %PORT%:%PORT% %DOCKER_USER%/%SERVICE%:%IMAGE_TAG%
+                    rem Conectar gateway también a red-web
+                    if "%SERVICE%"=="ms-api-gateway" (
                     ssh -i key.pem opc@%REMOTE_IP% sudo docker network connect red-web gateway
-                )
-                goto :eof
+                    )
+                    goto :eof
                 '''
             }
         }
     }
 }
+
+
