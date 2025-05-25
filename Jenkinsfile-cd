@@ -38,10 +38,10 @@ pipeline {
                         echo Desplegando servicio: %%S
                         echo ===========================
 
-                        ssh -i key.pem opc@%REMOTE_IP% docker pull %DOCKER_USER%/%%S:%IMAGE_TAG%
-                        ssh -i key.pem opc@%REMOTE_IP% docker stop %%S
-                        ssh -i key.pem opc@%REMOTE_IP% docker rm %%S
-                        ssh -i key.pem opc@%REMOTE_IP% docker run -d --name %%S -p 8080:8080 %DOCKER_USER%/%%S:%IMAGE_TAG%
+                        ssh -i key.pem opc@%REMOTE_IP% sudo docker pull %DOCKER_USER%/%%S:%IMAGE_TAG%
+                        ssh -i key.pem opc@%REMOTE_IP% sudo docker stop %%S
+                        ssh -i key.pem opc@%REMOTE_IP% sudo docker rm %%S
+                        ssh -i key.pem opc@%REMOTE_IP% sudo docker run -d --name %%S -p 8080:8080 %DOCKER_USER%/%%S:%IMAGE_TAG%
                     )
                 '''
             }
