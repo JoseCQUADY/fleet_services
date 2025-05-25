@@ -71,10 +71,10 @@ pipeline {
                         echo Puerto: !PORT!
                         echo ===========================
 
-                        ssh -i key.pem opc@%REMOTE_IP% docker pull %DOCKER_USER%/!SERVICE!:%IMAGE_TAG%
-                        ssh -i key.pem opc@%REMOTE_IP% docker stop !CONTAINER!
-                        ssh -i key.pem opc@%REMOTE_IP% docker rm !CONTAINER!
-                        ssh -i key.pem opc@%REMOTE_IP% docker run -d --name !CONTAINER! --network devops -p !PORT!:8080 %DOCKER_USER%/!SERVICE!:%IMAGE_TAG%
+                        ssh -i key.pem opc@%REMOTE_IP% sudo docker pull %DOCKER_USER%/!SERVICE!:%IMAGE_TAG%
+                        ssh -i key.pem opc@%REMOTE_IP% sudo docker stop !CONTAINER!
+                        ssh -i key.pem opc@%REMOTE_IP% sudo docker rm !CONTAINER!
+                        ssh -i key.pem opc@%REMOTE_IP% sudo docker run -d --name !CONTAINER! --network devops -p !PORT!:8080 %DOCKER_USER%/!SERVICE!:%IMAGE_TAG%
                     )
                 '''
             }
