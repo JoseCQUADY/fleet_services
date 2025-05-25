@@ -1,12 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_USER = 'jcq12'
-        IMAGE_TAG = 'latest'
-        REMOTE_IP = '40.233.6.181' 
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -18,78 +12,60 @@ pipeline {
             steps {
                 copyArtifacts(
                     projectName: 'fleet-system/development',
-                    selector: specific('65') 
+                    selector: specific('development'),
+                    filter: 'changed_services.txt'
                 )
             }
         }
 
         stage('Desplegar servicios modificados') {
             steps {
-                bat '''
-    @echo off
-    setlocal enabledelayedexpansion
+                script {
+                    def file = readFile('changed_services.txt')
+                    def services = file.split('\n').findAll { it.trim() }
 
-    if not exist changed_services.txt (
-        echo No hay servicios modificados.
-        exit /b 0
-    )
+                    services.each { service ->
+                        echo "==========================="
+                        echo "Desplegando ${service}"
+                        echo "==========================="
 
-    for /f %%S in (changed_services.txt) do (
-        call :deployService %%S
-    )
+                        def containerName = getContainerName(service)
+                        def port = getContainerPort(service)
 
-    exit /b 0
+                        bat "docker pull jcq12/${service}:latest"
 
-:deployService
-    set SERVICE=%1
+                        bat """
+                            if sudo docker ps -a --format "{{.Names}}" | findstr /i ${containerName} >nul 2>&1 (
+                                echo Contenedor ${containerName} existe. Deteniéndolo y eliminándolo...
+                                sudo docker stop ${containerName}
+                                sudo docker rm ${containerName}
+                            ) else (
+                                echo Contenedor ${containerName} no existe.
+                            )
+                        """
 
-    if "%SERVICE%"=="ms-api-gateway" (
-        set CONTAINER=gateway
-        set PORT=8080
-    ) else if "%SERVICE%"=="ms-auth-service" (
-        set CONTAINER=auth
-        set PORT=8081
-    ) else if "%SERVICE%"=="ms-administrator-service" (
-        set CONTAINER=administrator
-        set PORT=8082
-    ) else if "%SERVICE%"=="ms-invitation-service" (
-        set CONTAINER=code
-        set PORT=8083
-    ) else if "%SERVICE%"=="ms-vehicle-service" (
-        set CONTAINER=vehicle
-        set PORT=8084
-    ) else if "%SERVICE%"=="ms-driver-service" (
-        set CONTAINER=driver
-        set PORT=8085
-    ) else if "%SERVICE%"=="ms-route-service" (
-        set CONTAINER=route
-        set PORT=8086
-    ) else (
-        echo Servicio %SERVICE% no reconocido. Saltando...
-        goto :eof
-    )
-
-    echo ===========================
-    echo Desplegando %SERVICE%
-    echo Contenedor: %CONTAINER%
-    echo Puerto: %PORT%
-    echo ===========================
-
-    ssh -i key.pem opc@%REMOTE_IP% sudo docker pull %DOCKER_USER%/%SERVICE%:%IMAGE_TAG%
-
-    ssh -i key.pem opc@%REMOTE_IP% sudo docker ps -a -q -f name=^/%CONTAINER%$ > nul && (
-        echo Contenedor %CONTAINER% existe. Deteniéndolo y eliminándolo...
-        ssh -i key.pem opc@%REMOTE_IP% sudo docker stop %CONTAINER%
-        ssh -i key.pem opc@%REMOTE_IP% sudo docker rm %CONTAINER%
-    ) || (
-        echo Contenedor %CONTAINER% no existe. Continuando...
-    )
-
-    ssh -i key.pem opc@%REMOTE_IP% sudo docker run -d --name %CONTAINER% --network devops -p %PORT%:%PORT% %DOCKER_USER%/%SERVICE%:%IMAGE_TAG%
-
-    goto :eof
-'''
+                        bat " sudo docker run -d --name ${containerName} -p ${port}:${port} --network devops jcq12/${service}:latest"
+                    }
+                }
             }
         }
+    }
+}
+
+def getContainerName(service) {
+    switch(service) {
+        case 'ms-administrator-service': return 'administrator'
+        case 'ms-auth-service': return 'auth'
+        case 'ms-route-service': return 'route'
+        default: return service
+    }
+}
+
+def getContainerPort(service) {
+    switch(service) {
+        case 'ms-administrator-service': return '8082'
+        case 'ms-auth-service': return '8081'
+        case 'ms-route-service': return '8083'
+        default: return '8080'
     }
 }
