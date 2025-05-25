@@ -17,8 +17,8 @@ pipeline {
         stage('Obtener servicios modificados') {
             steps {
                 copyArtifacts(
-                    projectName: 'fleet-system',
-                    selector: specific('65') // Ajusta si usas otro build selector
+                    projectName: 'fleet-system/development',
+                    selector: specific('65') 
                 )
             }
         }
