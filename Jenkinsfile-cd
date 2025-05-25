@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        REMOTE_IP = '40.233.6.181'               // Cambia esto por la IP real de tu servidor
-        DOCKER_USER = 'jcq12'                        // Usuario Docker Hub
-        IMAGE_TAG = 'latest'                         // O usa alguna variable/tag dinámico
+        REMOTE_IP = '40.233.6.181'               
+        DOCKER_USER = 'jcq12'                     
+        IMAGE_TAG = 'latest'                         
     }
 
     stages {
@@ -18,8 +18,7 @@ pipeline {
             steps {
                 copyArtifacts(
                     projectName: 'fleet-system/development',
-                    filter: 'changed_services.txt',
-                    selector: specific('development')
+                    filter: 'changed_services.txt'
                 )
             }
         }
