@@ -18,12 +18,16 @@ pipeline {
                 script {
                     bat 'git fetch origin'
 
-                    def diffFiles = bat(script: "git diff --name-only ${params.BASE_BRANCH}", returnStdout: true).trim().split('\r?\n')
+                    def diffRaw = bat(script: "git diff --name-only ${params.BASE_BRANCH}", returnStdout: true).trim()
+                    def diffFiles = diffRaw.tokenize('\n') // Maneja \r\n y \n
+
+                    echo "Archivos modificados:\n${diffFiles.join('\n')}"
+
                     def services = env.SERVICES_STRING.split(' ')
                     def changedServices = []
 
                     for (service in services) {
-                        if (diffFiles.any { it.startsWith("${service}\\") }) {
+                        if (diffFiles.any { it.startsWith("${service}/") }) { // Uso de '/' correcto para Git
                             changedServices << service
                         }
                     }
@@ -52,25 +56,24 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: env.DOCKER_HUB_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         bat "echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin"
 
-<<<<<<< HEAD
                         changedServices.each { service ->
                             echo "Iniciando construcción y subida para ${service}..."
 
                             dir(service) {
                                 if (fileExists("gradlew.bat")) {
-                                    bat "gradlew.bat dockerfile --no-daemon"
+                                    bat "gradlew.bat build -x test"
                                 } else {
                                     echo "No se encontró gradlew en ${service}, omitiendo generación de Dockerfile."
                                 }
                             }
 
-                            def dockerfilePath = "${service}\\build\\docker\\Dockerfile"
-                            def dockerContext = "${service}\\build\\docker"
+                            def dockerfilePath = "${service}/Dockerfile"
+                            def dockerContext = "${service}"
                             def imageName = "${env.DOCKER_HUB_USER}/${service}:${env.IMAGE_TAG}"
 
                             if (fileExists(dockerfilePath)) {
                                 bat """
-                                    docker buildx build --platform linux/amd64 ^
+                                    docker buildx build --platform linux/arm64 ^
                                       -t ${imageName} ^
                                       --push ^
                                       -f "${dockerfilePath}" "${dockerContext}"
@@ -78,26 +81,6 @@ pipeline {
                             } else {
                                 echo "No se encontró Dockerfile en ${dockerfilePath}, se omite la construcción."
                             }
-=======
-                        changedServices.each { servicio ->
-                            echo "Iniciando construcción y subida para ${servicio}..."
-
-                            // 1. Genera el Dockerfile
-                            dir("${servicio}") {
-                                bat "gradlew dockerfile --no-daemon"
-                            }
-
-                            // 2. Construye y sube la imagen con buildx (linux/amd64)
-                            def dockerfilePath = "${servicio}/build/docker/Dockerfile"
-                            def contextPath = "${servicio}/build/docker"
-
-                            bat """
-                                docker buildx build --platform linux/amd64 `
-                                  -t ${env.DOCKER_HUB_USER}/${servicio}:${env.IMAGE_TAG} `
-                                  --push `
-                                  -f "${dockerfilePath}" "${contextPath}"
-                            """
->>>>>>> origin/main
                         }
 
                         bat "docker logout"
@@ -111,14 +94,13 @@ pipeline {
         always {
             archiveArtifacts artifacts: 'changed_services.txt', fingerprint: true
         }
-<<<<<<< HEAD
+
         failure {
             echo 'El pipeline falló. Verifica los logs para más detalles.'
         }
+
         success {
             echo 'Pipeline ejecutado exitosamente.'
         }
-=======
->>>>>>> origin/main
     }
 }
