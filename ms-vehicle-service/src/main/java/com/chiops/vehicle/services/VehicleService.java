@@ -1,11 +1,12 @@
 package com.chiops.vehicle.services;
 
-import com.chiops.vehicle.libs.dtos.VehicleAssignmentDTO;
-import com.chiops.vehicle.libs.dtos.VehicleDTO;
 import io.micronaut.http.multipart.CompletedFileUpload;
 import jakarta.validation.Valid;
 
 import java.util.List;
+
+import com.chiops.vehicle.libs.dtos.VehicleAssignmentDTO;
+import com.chiops.vehicle.libs.dtos.VehicleDTO;
 
 public interface VehicleService {
 

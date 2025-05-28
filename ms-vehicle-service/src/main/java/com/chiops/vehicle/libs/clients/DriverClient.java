@@ -1,7 +1,6 @@
 package com.chiops.vehicle.libs.clients;
 
 
-import com.chiops.vehicle.libs.dtos.DriverDTO;
 import io.micronaut.http.annotation.*;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.security.annotation.Secured;
@@ -9,6 +8,8 @@ import io.micronaut.security.rules.SecurityRule;
 
 import java.util.List;
 import java.util.Optional;
+
+import com.chiops.vehicle.libs.dtos.DriverDTO;
 
 @Secured(SecurityRule.IS_ANONYMOUS)
 @Client("${services.driver.url}/driver")

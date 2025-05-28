@@ -3,11 +3,15 @@ package com.chiops.vehicle.services.impl;
 import com.chiops.vehicle.entities.Vehicle;
 import com.chiops.vehicle.entities.VehicleAssignment;
 import com.chiops.vehicle.libs.clients.DriverClient;
+import com.chiops.vehicle.libs.dtos.DriverDTO;
 import com.chiops.vehicle.libs.dtos.VehicleAssignmentDTO;
 import com.chiops.vehicle.libs.exceptions.exception.*;
 import com.chiops.vehicle.repositories.VehicleAssignmentRepository;
 import com.chiops.vehicle.repositories.VehicleRepository;
 import com.chiops.vehicle.services.VehicleAssignmentService;
+
+import io.micronaut.http.client.exceptions.HttpClientResponseException;
+import io.micronaut.http.HttpStatus;
 import jakarta.inject.Singleton;
 
 import java.time.LocalDateTime;
@@ -216,6 +220,7 @@ public class VehicleAssignmentServiceImpl implements VehicleAssignmentService {
     private VehicleAssignmentDTO vehicleAssignmentToDTO(VehicleAssignment vehicleAssignment) {
         VehicleAssignmentDTO dto = new VehicleAssignmentDTO();
         dto.setDriverCurp(vehicleAssignment.getDriverCurp());
+        dto.setVin(vehicleAssignment.getVehicle().getVin());
         dto.setAssignedAt(vehicleAssignment.getAssignedAt());
         dto.setReleasedAt(vehicleAssignment.getReleasedAt());
         dto.setStatus(vehicleAssignment.getStatus());

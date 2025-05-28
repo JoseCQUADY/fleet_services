@@ -25,7 +25,7 @@ public class GlobalErrorController {
     public HttpResponse<ErrorResponse> handleNotFound(HttpRequest<?> request) {
         ErrorResponse err = new ErrorResponse(
             HttpStatus.NOT_FOUND,
-            "Endpoint " + request.getPath() +
+            "Endpoint " + request.getPath() + request.getBody() +
             " not found or parameter set in the request does not exist",
             request.getPath()
         );

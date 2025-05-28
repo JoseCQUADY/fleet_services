@@ -1,23 +1,18 @@
 package com.chiops.vehicle.controllers;
 
 import com.chiops.vehicle.libs.dtos.VehicleAssignmentDTO;
-import com.chiops.vehicle.libs.exceptions.entities.ErrorResponse;
 import com.chiops.vehicle.libs.exceptions.exception.BadRequestException;
 import com.chiops.vehicle.libs.exceptions.exception.InternalServerException;
-import com.chiops.vehicle.libs.exceptions.exception.MethodNotAllowedException;
 import com.chiops.vehicle.libs.exceptions.exception.NotFoundException;
 import com.chiops.vehicle.services.VehicleAssignmentService;
 
-import io.micronaut.http.HttpRequest;
-import io.micronaut.http.HttpResponse;
-import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.*;
-import io.micronaut.http.annotation.Error;
 import io.micronaut.scheduling.TaskExecutors;
 import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
+import jakarta.validation.ConstraintViolationException;
 
 import java.util.List;
 
@@ -69,7 +64,7 @@ public class VehicleAssigmentController {
     public VehicleAssignmentDTO assignVehicleToDriver(@Body VehicleAssignmentDTO vehicleAssignmentDto) {
         try {
             return vehicleAssignmentService.assignVehicleToDriver(vehicleAssignmentDto);
-        } catch (BadRequestException e) {
+        }catch (BadRequestException e) {
             throw new BadRequestException("Bad request while trying to assign vehicle to driver: " + e.getMessage());
         } catch (InternalServerException e) {
             throw new InternalServerException("Internal server error while trying to assign vehicle to driver: " + e.getMessage());

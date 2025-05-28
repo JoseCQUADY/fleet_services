@@ -1,7 +1,7 @@
 package com.chiops.vehicle.services;
 
-import com.chiops.vehicle.libs.dtos.VehicleWithImageDTO;
 import com.chiops.vehicle.libs.dtos.VehicleDTO;
+import com.chiops.vehicle.libs.dtos.VehicleWithImageDTO;
 
 public interface VehicleImageDecodingService {
 
