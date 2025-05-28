@@ -1,6 +1,8 @@
 package com.chiops.invitation.services.impl;
 
 import java.security.SecureRandom;
+import java.util.stream.Collectors;
+
 import com.chiops.invitation.entities.InvitationCode;
 import com.chiops.invitation.libs.dto.InvitationCodeDTO;
 import com.chiops.invitation.repositories.InvitationCodeRepository;
@@ -9,6 +11,7 @@ import com.chiops.invitation.libs.exceptions.exception.*;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Singleton;
+import java.util.List;
 
 @Singleton
 public class InvitationCodeImpl implements InvitationCodeService {
@@ -49,6 +52,18 @@ public class InvitationCodeImpl implements InvitationCodeService {
                 .orElseThrow(() -> new BadRequestException("The code is incorrect: " + code));
 
         return toDTO(invitation);
+    }
+
+    @Override
+    public List<InvitationCodeDTO> getAllCodes() {
+        try {
+            List<InvitationCode> codes = (List<InvitationCode>) invitationCodeRepository.findAll();
+            return codes.stream()
+                        .map(this::toDTO)
+                        .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new InternalServerException("Error al obtener todos los códigos: " + e.getMessage());
+        }
     }
 
     @Override
