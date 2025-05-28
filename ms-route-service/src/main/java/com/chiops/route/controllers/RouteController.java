@@ -15,6 +15,7 @@ import io.micronaut.http.annotation.*;
 import io.micronaut.http.annotation.Error;
 import io.micronaut.scheduling.TaskExecutors;
 import io.micronaut.scheduling.annotation.ExecuteOn;
+import jakarta.validation.ConstraintViolationException;
 
 @Controller("/route")
 @ExecuteOn(TaskExecutors.BLOCKING)
@@ -30,7 +31,9 @@ public class RouteController {
     public RouteDTO createRoute(@Body RouteDTO route) {
         try {
             return routeService.createRoute(route);
-        } catch (BadRequestException e) {
+        } catch(ConstraintViolationException e){
+            throw new BadRequestException("Bad request while trying to create the route: " + e.getMessage());
+        }catch (BadRequestException e) {
             throw new BadRequestException("Error de solicitud al crear la ruta: " + e.getMessage());
         } catch (InternalServerException e) {
             throw new InternalServerException("Error interno al crear la ruta: " + e.getMessage());
@@ -41,7 +44,9 @@ public class RouteController {
     public RouteDTO updateRoute(@Body RouteDTO route) {
         try {
             return routeService.updateRoute(route);
-        } catch (BadRequestException e) {
+        } catch(ConstraintViolationException e){
+            throw new BadRequestException("Bad request while trying to create the driver: " + e.getMessage());
+        }catch (BadRequestException e) {
             throw new BadRequestException("Error de solicitud al actualizar la ruta: " + e.getMessage());
         } catch (InternalServerException e) {
             throw new InternalServerException("Error interno al actualizar la ruta: " + e.getMessage());

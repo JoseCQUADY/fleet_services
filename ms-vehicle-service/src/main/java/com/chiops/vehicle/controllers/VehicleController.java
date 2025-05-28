@@ -22,6 +22,7 @@ import io.micronaut.scheduling.TaskExecutors;
 import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
+import jakarta.validation.ConstraintViolationException;
 
 import java.util.List;
 @ExecuteOn(TaskExecutors.BLOCKING)
@@ -45,7 +46,9 @@ public class VehicleController {
     public VehicleDTO createVehicle(@Body VehicleWithImageDTO vehicleWithImageDTO) {
         try {
         return decodingService.createVehicleFromEncodedImage(vehicleWithImageDTO);
-    } catch (BadRequestException e) {
+    }catch(ConstraintViolationException e){
+            throw new BadRequestException("Bad request while trying to create the route: " + e.getMessage());
+    }catch (BadRequestException e) {
         throw new BadRequestException("Bad request while trying to create the vehicle: " + e.getMessage());
     } catch (InternalServerException e) {
         throw new InternalServerException("Internal server error while trying to create the vehicle: " + e.getMessage());
@@ -74,7 +77,7 @@ public class VehicleController {
         }
     }
 
-    @Get(value = "/get/{vin}", consumes = MediaType.APPLICATION_JSON)
+    @Get("/get/{vin}")
     public VehicleDTO getVehicleByVin(@PathVariable String vin) {
         try {
             return vehicleService.getVehicleByVin(vin);

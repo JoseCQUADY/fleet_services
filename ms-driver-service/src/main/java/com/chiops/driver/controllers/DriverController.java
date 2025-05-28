@@ -7,6 +7,8 @@ import com.chiops.driver.libs.exceptions.exception.InternalServerException;
 import com.chiops.driver.services.DriverService;
 
 import io.micronaut.http.annotation.*;
+import jakarta.validation.ConstraintDeclarationException;
+import jakarta.validation.ConstraintViolationException;
 
 import java.util.List;
 
@@ -23,7 +25,10 @@ public class DriverController {
     public DriverDTO createDriver(@Body DriverDTO driverDTO) {
         try {
             return driverService.createDriver(driverDTO);
-        } catch (BadRequestException e) {
+        }catch(ConstraintViolationException e){
+            throw new BadRequestException("Bad request while trying to create the driver: " + e.getMessage());
+        }
+        catch (BadRequestException e) {
             throw new BadRequestException("Bad request while trying to create the driver: " + e.getMessage());
         } catch (InternalServerException e) {
             throw new InternalServerException("Internal server error while trying to create the driver: " + e.getMessage());

@@ -144,10 +144,12 @@ public class VehicleServiceImpl implements VehicleService {
         if (vehicleOpt.isEmpty()) {
             throw new BadRequestException("The VIN is incorrect.");
         }
+
         Vehicle vehicle = vehicleOpt.get();
         if (vehicle.getVehicleAssignment() != null && "assigned".equals(vehicle.getVehicleAssignment().getStatus())) {
             throw new ConflictException("Cannot delete vehicle with VIN " + vin + " because it is currently assigned");
         }
+
         vehicleRepository.delete(vehicle);
         return toDTO(vehicle);
     }

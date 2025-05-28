@@ -50,11 +50,7 @@ public class DriverServiceImpl implements DriverService {
     @Override
     @Transactional
     public DriverDTO createDriver(@Valid DriverDTO dto) {
-        if (dto.getCurp() == null || dto.getCurp().isBlank()) {
-            throw new BadRequestException("CURP field is obligatory");
-        }
         
-
         if (driverRepository.findByCurp(dto.getCurp()).isPresent()) {
             throw new ConflictException("Driver with CURP " + dto.getCurp() + " already exists");
         }

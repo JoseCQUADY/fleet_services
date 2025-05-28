@@ -43,7 +43,7 @@ public class VehicleController {
         vehicleClient.deleteVehicle(vin);
     }
 
-    @Get(value = "/get/{vin}", consumes = MediaType.APPLICATION_JSON)
+    @Get("/get/{vin}")
     public VehicleDTO getVehicleByVin(@PathVariable String vin) {
         return vehicleClient.getVehicleByVin(vin);
     }
