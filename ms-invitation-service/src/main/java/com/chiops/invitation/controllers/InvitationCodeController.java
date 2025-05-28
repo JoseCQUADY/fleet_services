@@ -76,4 +76,5 @@ public class InvitationCodeController {
             throw new InternalServerException("Error interno al marcar el código como usado: " + e.getMessage());
         }
     }
+    
 }
