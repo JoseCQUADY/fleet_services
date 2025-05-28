@@ -1,5 +1,7 @@
 package com.chiops.gateway.controllers;
 
+import java.util.List;
+
 import com.chiops.gateway.libs.clients.InvitationCodeClient;
 import com.chiops.gateway.libs.dtos.InvitationCodeDTO;
 
@@ -27,6 +29,11 @@ public class InvitationCodeController {
         return invitationCodeClient.findByCode(code);
     }
 
+    @Get("/getall")
+    @Status(HttpStatus.OK)
+    public List<InvitationCodeDTO> getAllCodes() {
+        return invitationCodeClient.getAllCodes();
+    }
     @Get("/generate")
     @Status(HttpStatus.CREATED)
     public InvitationCodeDTO generateInvitationCode() {

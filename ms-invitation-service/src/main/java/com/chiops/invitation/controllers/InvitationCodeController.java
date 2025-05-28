@@ -12,6 +12,7 @@ import com.chiops.invitation.libs.exceptions.exception.MethodNotAllowedException
 import com.chiops.invitation.libs.exceptions.exception.NotFoundException;
 import com.chiops.invitation.services.InvitationCodeService;
 
+import java.util.List;
 import io.micronaut.http.annotation.*;
 import io.micronaut.http.annotation.Error;
 import io.micronaut.scheduling.annotation.ExecuteOn;
@@ -39,6 +40,18 @@ public class InvitationCodeController {
             throw new BadRequestException("Error de solicitud al buscar el código: " + e.getMessage());
         } catch (InternalServerException e) {
             throw new InternalServerException("Error interno al buscar el código: " + e.getMessage());
+        }
+    }
+    
+    @Get("/getall")
+    @Status(HttpStatus.OK)
+    public List<InvitationCodeDTO> getAllCodes() {
+        try {
+            return invitationCodeSevice.getAllCodes();
+        } catch (BadRequestException e) {
+            throw new BadRequestException("Error de solicitud al obtener todos los códigos: " + e.getMessage());
+        } catch (InternalServerException e) {
+            throw new InternalServerException("Error interno al obtener todos los códigos: " + e.getMessage());
         }
     }
 
