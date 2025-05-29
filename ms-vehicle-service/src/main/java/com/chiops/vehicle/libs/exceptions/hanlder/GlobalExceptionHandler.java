@@ -10,7 +10,6 @@ import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.Produces;
-import io.micronaut.http.exceptions.HttpStatusException;
 import io.micronaut.http.server.exceptions.ExceptionHandler;
 import jakarta.inject.Singleton;
 
@@ -23,10 +22,7 @@ public class GlobalExceptionHandler implements ExceptionHandler<RuntimeException
 
     @Override
     public HttpResponse<ErrorResponse> handle(HttpRequest request, RuntimeException exception) {
-        HttpStatus status = (exception instanceof HttpStatusException)
-            ? ((HttpStatusException) exception).getStatus()
-            : determineHttpStatus(exception);
-            
+        HttpStatus status = determineHttpStatus(exception);
         ErrorResponse error = new ErrorResponse(
             status,
             exception.getMessage(),

@@ -14,10 +14,13 @@ import jakarta.inject.Singleton;
 import java.io.InputStream;
 import java.util.Optional;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 public class ImageStoreServiceImpl implements ImageStoreService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ImageStoreServiceImpl.class);
     private final ObjectStorageOperations<?, ?, ?> objectStorage;
 
     public ImageStoreServiceImpl(ObjectStorageOperations<?, ?, ?> objectStorage) {
@@ -29,11 +32,15 @@ public class ImageStoreServiceImpl implements ImageStoreService {
         String contentType = getContentType(originalFilename);
 
         if (MediaType.APPLICATION_PDF.equals(contentType) || MediaType.APPLICATION_OCTET_STREAM.equals(contentType)) {
+            LOG.error("Unsupported file type for image upload: {}", contentType);
             throw new UnsupportedMediaTypeException("Solo se permiten imágenes JPEG, PNG, GIF, BMP o WebP. No admite: " + contentType);
         }
 
         Optional<String> extensionOpt = getFileExtension(originalFilename);
-        String extension = extensionOpt.orElseThrow(() -> new BadRequestException("No se pudo determinar la extensión del archivo"));
+        String extension = extensionOpt.orElseThrow(() -> {
+            LOG.error("No se pudo determinar la extensión del archivo: {}", originalFilename);
+            return new BadRequestException("No se pudo determinar la extensión del archivo");
+        });
 
         String uniqueKey = vehicleId + "_" + UUID.randomUUID().toString() + extension;
 
@@ -42,9 +49,12 @@ public class ImageStoreServiceImpl implements ImageStoreService {
             request.setContentType(contentType);
             UploadResponse<?> response = objectStorage.upload(request);
             String baseUrl = "http://localhost:8080";
+
+            LOG.info("Imagen subida exitosamente: {}", uniqueKey);
             return baseUrl + "/vehicle/view/" + uniqueKey;
 
         } catch (Exception e) {
+            LOG.error("Error al subir la imagen: {}", e.getMessage());
             throw new ConflictException("Error al subir la imagen: " + e.getMessage());
         }
     }
@@ -53,11 +63,13 @@ public class ImageStoreServiceImpl implements ImageStoreService {
     public HttpResponse<?> view(String filename) {
         try {
             if (filename == null || filename.isBlank()) {
+                LOG.error("El campo filename es obligatorio");
                 throw new BadRequestException("filename field is obligatory");
             }
             Optional<ObjectStorageEntry> entryOptional = objectStorage.retrieve(filename);
 
             if (entryOptional.isEmpty()) {
+                LOG.error("Imagen con nombre {} no encontrada", filename);
                 throw new NotFoundException("Imagen con nombre " + filename + " no encontrada");
             }
 
@@ -65,8 +77,10 @@ public class ImageStoreServiceImpl implements ImageStoreService {
             InputStream inputStream = entry.getInputStream();
             MediaType mediaType = MediaType.of(getContentType(filename));
 
+            LOG.info("Imagen recuperada exitosamente: {}", filename);
             return HttpResponse.ok(new StreamedFile(inputStream, mediaType));
         } catch (Exception e) {
+            LOG.error("Error al recuperar la imagen: {}", e.getMessage());
             throw new ConflictException("Error al recuperar la imagen: " + e.getMessage());
         }
     }

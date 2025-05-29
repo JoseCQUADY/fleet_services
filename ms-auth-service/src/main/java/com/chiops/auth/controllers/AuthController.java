@@ -14,12 +14,15 @@ import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.scheduling.TaskExecutors;
 import io.micronaut.scheduling.annotation.ExecuteOn;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ExecuteOn(TaskExecutors.BLOCKING)
 @Secured(SecurityRule.IS_ANONYMOUS)
 @Controller("/auth")
 public class AuthController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(AuthController.class);
     private final AuthProvider authProvider;
 
     public AuthController(AuthProvider authProvider) {
@@ -28,22 +31,28 @@ public class AuthController {
 
     @Post("/login")
     public Mono<HttpResponse<?>> login(@Body AdministratorRequestDTO dto) {
+        LOG.info("Received login request for email: {}", dto.getEmail());
         try {
             return authProvider.login(dto);
         } catch (BadRequestException e) {
+            LOG.error("Login request error: {}", e.getMessage());
             return Mono.error(new BadRequestException("Login request error: " + e.getMessage()));
         } catch (InternalServerException e) {
+            LOG.error("Internal error during login: {}", e.getMessage());
             return Mono.error(new InternalServerException("Internal error during login: " + e.getMessage()));
         }
     }
 
     @Post("/register")
     public Mono<HttpResponse<?>> register(@Body AdministratorRequestDTO dto) {
+        LOG.info("Received registration request for email: {}", dto.getEmail());
         try {
             return authProvider.register(dto);
         } catch (BadRequestException e) {
+            LOG.error("Registration request error: {}", e.getMessage());
             return Mono.error(new BadRequestException("Registration request error: " + e.getMessage()));
         } catch (InternalServerException e) {
+            LOG.error("Internal error during registration: {}", e.getMessage());
             return Mono.error(new InternalServerException("Internal error during registration: " + e.getMessage()));
         }
     }
