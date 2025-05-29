@@ -10,6 +10,19 @@ services:
       - "LS_JAVA_OPTS=-Xmx512m -Xms512m"
     networks:
       - ms-network
+  
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: grafana
+    ports:
+      - "8989:3000"  # Acceso a Grafana desde localhost:8989
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    networks:
+      - ms-network
+
+volumes:
+  grafana-storage:
 
 networks:
   ms-network:
