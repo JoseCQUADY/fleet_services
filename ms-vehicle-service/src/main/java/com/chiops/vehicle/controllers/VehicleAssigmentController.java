@@ -1,18 +1,25 @@
 package com.chiops.vehicle.controllers;
 
 import com.chiops.vehicle.libs.dtos.VehicleAssignmentDTO;
+import com.chiops.vehicle.libs.exceptions.entities.ErrorResponse;
 import com.chiops.vehicle.libs.exceptions.exception.BadRequestException;
 import com.chiops.vehicle.libs.exceptions.exception.InternalServerException;
+import com.chiops.vehicle.libs.exceptions.exception.MethodNotAllowedException;
 import com.chiops.vehicle.libs.exceptions.exception.NotFoundException;
 import com.chiops.vehicle.services.VehicleAssignmentService;
 
+import io.micronaut.http.HttpRequest;
+import io.micronaut.http.HttpResponse;
+import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.*;
+import io.micronaut.http.annotation.Error;
 import io.micronaut.scheduling.TaskExecutors;
 import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
-import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -21,6 +28,7 @@ import java.util.List;
 @Secured(SecurityRule.IS_ANONYMOUS)
 public class VehicleAssigmentController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(VehicleAssigmentController.class);
     private final VehicleAssignmentService vehicleAssignmentService;
 
     public VehicleAssigmentController(VehicleAssignmentService vehicleAssignmentService) {
@@ -29,11 +37,14 @@ public class VehicleAssigmentController {
 
     @Get(value = "/status/{status}", produces = MediaType.APPLICATION_JSON)
     public List<VehicleAssignmentDTO> findByStatus(@PathVariable String status) {
+        LOG.info("Received request to find assignments by status: {}", status);
         try {
             return vehicleAssignmentService.findByStatus(status);
         } catch (BadRequestException e) {
+            LOG.error("Bad request while trying to find assignments by status: {}", e.getMessage());
             throw new BadRequestException("Bad request while trying to find assignments by status: " + e.getMessage());
         } catch (InternalServerException e) {
+            LOG.error("Internal server error while trying to find assignments by status: {}", e.getMessage());
             throw new InternalServerException("Internal server error while trying to find assignments by status: " + e.getMessage());
         }
     }
@@ -64,7 +75,7 @@ public class VehicleAssigmentController {
     public VehicleAssignmentDTO assignVehicleToDriver(@Body VehicleAssignmentDTO vehicleAssignmentDto) {
         try {
             return vehicleAssignmentService.assignVehicleToDriver(vehicleAssignmentDto);
-        }catch (BadRequestException e) {
+        } catch (BadRequestException e) {
             throw new BadRequestException("Bad request while trying to assign vehicle to driver: " + e.getMessage());
         } catch (InternalServerException e) {
             throw new InternalServerException("Internal server error while trying to assign vehicle to driver: " + e.getMessage());

@@ -23,6 +23,7 @@ dependencies {
     implementation("io.micronaut.serde:micronaut-serde-jackson")
     implementation("io.micronaut.sql:micronaut-hibernate-jpa")
     implementation("io.micronaut.sql:micronaut-jdbc-hikari")
+    implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '8.1'
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly("com.mysql:mysql-connector-j")
 }

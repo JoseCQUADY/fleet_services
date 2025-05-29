@@ -4,8 +4,8 @@ import com.chiops.vehicle.entities.Brand;
 import com.chiops.vehicle.entities.Model;
 import com.chiops.vehicle.entities.Vehicle;
 import com.chiops.vehicle.entities.VehicleIdentification;
-import com.chiops.vehicle.libs.dtos.VehicleDTO;
 import com.chiops.vehicle.libs.exceptions.exception.*;
+import com.chiops.vehicle.libs.dtos.VehicleDTO;
 import com.chiops.vehicle.repositories.*;
 import com.chiops.vehicle.services.VehicleService;
 import io.micronaut.http.multipart.CompletedFileUpload;
@@ -14,9 +14,13 @@ import jakarta.inject.Singleton;
 import jakarta.validation.Valid;
 import java.util.Optional;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Singleton
 public class VehicleServiceImpl implements VehicleService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(VehicleServiceImpl.class);
     private final VehicleRepository vehicleRepository;
     private final ImageStoreServiceImpl imageStoreService;
     private final ModelRepository modelRepository;
@@ -35,24 +39,30 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     public VehicleDTO getVehicleByVin(String vin) {
         Vehicle vehicle = vehicleRepository.findByVin(vin)
-                .orElseThrow(() -> new NotFoundException("Vehicle with VIN " + vin + " not found"));
+                .orElseThrow(() -> {
+                    LOG.error("Vehicle with VIN {} not found", vin);
+                    return new NotFoundException("Vehicle with VIN " + vin + " not found");
+                });
         return toDTO(vehicle);
     }
 
     @Override
     public List<VehicleDTO> getVehiclesByModelName(String model) {
         if (model== null || model.isBlank()) {
+            LOG.error("Model as parameter is obligatory");
             throw new BadRequestException("Model as parameter is obligatory");
         }
         Model modelEntity = modelRepository.findByName(model)
-            .orElseThrow(() ->
-                new NotFoundException("Model with name " + model + " not found")
-            );
+            .orElseThrow(() ->{
+                return new NotFoundException("Model with name " + model + " not found");
+        });
         List<Vehicle> vehicles = vehicleRepository.findByModel(modelEntity);
         if (vehicles.isEmpty()) {
+            LOG.error("No vehicles found for model {}", model);
             throw new NotFoundException("No vehicles found for model " + model);
         }
         
+        LOG.info("Found {} vehicles for model {}", vehicles.size(), model);
         return vehicles.stream()
                 .map(this::toDTO)
                 .toList();
@@ -61,6 +71,8 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     public List<VehicleDTO> getAllVehicles() {
         List<Vehicle> vehicles = vehicleRepository.findAll();
+
+        LOG.info("Found {} vehicles", vehicles.size());
         return vehicles.stream()
                 .map(this::toDTO)
                 .toList();
@@ -68,6 +80,7 @@ public class VehicleServiceImpl implements VehicleService {
 
     public VehicleDTO createVehicle(VehicleDTO vehicleDto, byte[] imageBytes) {
         if (vehicleRepository.findByVin(vehicleDto.getVin()).isPresent()) {
+            LOG.error("Vehicle with VIN {} already exists", vehicleDto.getVin());
             throw new ConflictException("Vehicle with VIN " + vehicleDto.getVin() + " already exists");
         }
     
@@ -94,6 +107,7 @@ public class VehicleServiceImpl implements VehicleService {
             vehicleDto.getVin() + ".jpg"
         );
         if (photoUrl == null) {
+            LOG.error("Failed to upload vehicle image for VIN {}", vehicleDto.getVin());
             throw new BadRequestException("Failed to upload vehicle image");
         }
     
@@ -107,15 +121,21 @@ public class VehicleServiceImpl implements VehicleService {
     
         vehicle.setIdentification(vehicleIdentification);
         vehicleRepository.save(vehicle);
+
+        LOG.info("Vehicle with VIN {} created successfully", vehicleDto.getVin());
         return toDTO(vehicle);
     }
 
     @Override
     public VehicleDTO updateVehicle(VehicleDTO vehicleDto) {
         Vehicle vehicle = vehicleRepository.findByVin(vehicleDto.getVin())
-                .orElseThrow(() -> new BadRequestException("Vin cannot be changed, be sure to write de Vin correctly\""));
+                .orElseThrow(() -> {
+                    LOG.error("Vehicle with VIN {} not found", vehicleDto.getVin());
+                    return new BadRequestException("Vin cannot be changed, be sure to write de Vin correctly\"");
+                });
         
         if (!vehicle.getVin().equals(vehicleDto.getVin())) {
+            LOG.error("Attempt to change VIN from {} to {}", vehicle.getVin(), vehicleDto.getVin());
             throw new BadRequestException("Vin cannot be changed, be sure to write the Vin correctly of the vehicle you want to update");
         }
 
@@ -135,6 +155,7 @@ public class VehicleServiceImpl implements VehicleService {
         vehicle.getIdentification().setPurchasedDate(vehicleDto.getPurchaseDate());
         vehicle.getIdentification().setPrice(vehicleDto.getCost());
 
+        LOG.info("Updating vehicle with VIN {}", vehicleDto.getVin());
         return toDTO(vehicleRepository.update(vehicle));
     }
 
@@ -142,15 +163,17 @@ public class VehicleServiceImpl implements VehicleService {
     public VehicleDTO deleteVehicle(String vin) {
         Optional <Vehicle> vehicleOpt = vehicleRepository.findByVin(vin);
         if (vehicleOpt.isEmpty()) {
+            LOG.error("Vehicle with VIN {} not found", vin);
             throw new BadRequestException("The VIN is incorrect.");
         }
-
         Vehicle vehicle = vehicleOpt.get();
         if (vehicle.getVehicleAssignment() != null && "assigned".equals(vehicle.getVehicleAssignment().getStatus())) {
+            LOG.error("Cannot delete vehicle with VIN {} because it is currently assigned", vin);
             throw new ConflictException("Cannot delete vehicle with VIN " + vin + " because it is currently assigned");
         }
-
         vehicleRepository.delete(vehicle);
+
+        LOG.info("Vehicle with VIN {} deleted successfully", vin);
         return toDTO(vehicle);
     }
 

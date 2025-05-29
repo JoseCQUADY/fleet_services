@@ -12,10 +12,13 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Singleton;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 public class InvitationCodeImpl implements InvitationCodeService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(InvitationCodeImpl.class);
     private static final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final int codeLength = 10;
     private final InvitationCodeRepository invitationCodeRepository;
@@ -38,6 +41,7 @@ public class InvitationCodeImpl implements InvitationCodeService {
 
         invitationCodeRepository.save(invitationCode);
 
+        LOG.info("Generated new invitation code: {}", generatedCode);
         return toDTO(invitationCode);
     }
 
@@ -45,12 +49,17 @@ public class InvitationCodeImpl implements InvitationCodeService {
     @Transactional
     public InvitationCodeDTO findByCode(String code) {
         if (code == null || code.isBlank()) {
+            LOG.error("A code as parameter is obligatory");
             throw new BadRequestException("A code as parameter is obligatory");
         }
 
         InvitationCode invitation = invitationCodeRepository.findByCode(code)
-                .orElseThrow(() -> new BadRequestException("The code is incorrect: " + code));
+                .orElseThrow(() -> {
+                    LOG.error("The code is incorrect: {}", code);
+                    return new BadRequestException("The code is incorrect: " + code);
+                });
 
+        LOG.info("Found invitation code: {}", code);
         return toDTO(invitation);
     }
 
@@ -70,31 +79,42 @@ public class InvitationCodeImpl implements InvitationCodeService {
     public InvitationCodeDTO deleteByCode(String code) {
  
         if (code == null || code.isBlank()) {
+            LOG.error("A code as parameter is obligatory");
             throw new BadRequestException("A code as parameter is obligatory");
         }
 
         InvitationCode invitation = invitationCodeRepository.findByCode(code)
-                .orElseThrow(() -> new BadRequestException("The code is incorrect: " + code));
+                .orElseThrow(() -> {
+                    LOG.error("The code is incorrect: {}", code);
+                    return new BadRequestException("The code is incorrect: " + code);
+                });
 
         invitationCodeRepository.delete(invitation);
+        LOG.info("Deleted invitation code: {}", code);
         return toDTO(invitation);
     }
 
     @Override
     public InvitationCodeDTO markAsUsed(String code) {
         if (code == null || code.isBlank()) {
+            LOG.error("A code as parameter is obligatory");
             throw new BadRequestException("A code as parameter is obligatory");
         }
 
         InvitationCode invitation = invitationCodeRepository.findByCode(code)
-                .orElseThrow(() -> new BadRequestException("The code is incorrect: " + code));
+                .orElseThrow(() -> {
+                    LOG.error("The code is incorrect: {}", code);
+                    return new BadRequestException("The code is incorrect: " + code);
+                });
 
         if (invitation.getStatus().equals("assigned")) {
+            LOG.error("Invitation code already used: {}", code);
             throw new ConflictException("Invitation code already used");
         }else{
             invitation.setStatus("assigned");
         }
         invitationCodeRepository.update(invitation);
+        LOG.info("Marked invitation code as used: {}", code);
 
         return toDTO(invitation);
     }

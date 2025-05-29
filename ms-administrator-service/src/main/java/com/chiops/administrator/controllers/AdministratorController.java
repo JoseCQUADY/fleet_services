@@ -14,6 +14,8 @@ import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.validation.Validated;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ExecuteOn(TaskExecutors.BLOCKING)
 @Controller("/admin")
@@ -21,6 +23,7 @@ import java.util.List;
 @Secured(SecurityRule.IS_ANONYMOUS)
 public class AdministratorController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(AdministratorController.class);
     private final AdministratorService administratorService;
 
     public AdministratorController(AdministratorService administratorService) {
@@ -29,66 +32,84 @@ public class AdministratorController {
 
     @Post("/register")
     public AdministratorResponseDTO createAdministrator(@Valid @Body AdministratorRequestDTO administrator) {
+        LOG.info("Received request to register administrator: {}", administrator.getEmail());
         try {
             return administratorService.signUpAdministrator(administrator);
         } catch (BadRequestException e) {
+            LOG.error("Bad request while registering administrator: {}", e.getMessage());
             throw new BadRequestException("Bad request while registering administrator: " + e.getMessage());
         } catch (InternalServerException e) {
+            LOG.error("Internal server error while registering administrator: {}", e.getMessage());
             throw new InternalServerException("Internal server error while registering administrator: " + e.getMessage());
         }
     }
 
     @Post("/login")
     public AdministratorResponseDTO signInAdministrator(@Valid @Body AdministratorRequestDTO administrator) {
+        LOG.info("Received request to sign in administrator: {}", administrator.getEmail());
         try {
             return administratorService.signInAdministrator(administrator);
         } catch (BadRequestException e) {
+            LOG.error("Bad request while signing in administrator: {}", e.getMessage());
             throw new BadRequestException("Bad request while signing in: " + e.getMessage());
         } catch (InternalServerException e) {
+            LOG.error("Internal server error while signing in administrator: {}", e.getMessage());
             throw new InternalServerException("Internal server error while signing in: " + e.getMessage());
         }
     }
 
     @Post("/get/{email}")
     public AdministratorResponseDTO findAdministratorByEmail(@Valid @PathVariable String email) {
+        LOG.info("Received request to find administrator by email: {}", email);
         try {
             return administratorService.findAdministratorByEmail(email);
         } catch (BadRequestException e) {
+            LOG.error("Bad request while retrieving administrator with email {}: {}", email, e.getMessage());
             throw new BadRequestException("Bad request while retrieving administrator with email " + email + ": " + e.getMessage());
         } catch (InternalServerException e) {
+            LOG.error("Internal server error while retrieving administrator with email {}: {}", email, e.getMessage());
             throw new InternalServerException("Internal server error while retrieving administrator with email " + email + ": " + e.getMessage());
         }
     }
 
     @Delete("/delete/{email}")
     public void deleteAdministratorByEmail(@Valid @PathVariable String email) {
+        LOG.info("Received request to delete administrator with email: {}", email);
         try {
             administratorService.deleteAdministratorByEmail(email);
         } catch (BadRequestException e) {
+            LOG.error("Bad request while deleting administrator with email {}: {}", email, e.getMessage());
             throw new BadRequestException("Bad request while deleting administrator with email " + email + ": " + e.getMessage());
         } catch (InternalServerException e) {
+            LOG.error("Internal server error while deleting administrator with email {}: {}", email, e.getMessage());
             throw new InternalServerException("Internal server error while deleting administrator with email " + email + ": " + e.getMessage());
         }
     }
 
     @Put("/update")
     public AdministratorResponseDTO updateAdministrator(@Valid @Body AdministratorRequestDTO administrator) {
+        LOG.info("Received request to update administrator: {}", administrator.getEmail());
         try {
             return administratorService.updateAdministrator(administrator);
         } catch (BadRequestException e) {
+            LOG.error("Bad request while updating administrator: {}", e.getMessage());
             throw new BadRequestException("Bad request while updating administrator: " + e.getMessage());
         } catch (InternalServerException e) {
+            LOG.error("Internal server error while updating administrator: {}", e.getMessage());
             throw new InternalServerException("Internal server error while updating administrator: " + e.getMessage());
         }
     }
 
     @Get("/getall")
     public List<AdministratorResponseDTO> getAdministratorList() {
+        LOG.info("Received request to retrieve all administrators");
         try {
             return administratorService.getAdministratorList();
         } catch (BadRequestException e) {
+            LOG.error("Bad request while retrieving administrator list: {}", e.getMessage());
             throw new BadRequestException("Bad request while retrieving administrator list: " + e.getMessage());
         } catch (InternalServerException e) {
+            LOG.error("Internal server error while retrieving administrator list: {}", e.getMessage());
             throw new InternalServerException("Internal server error while retrieving administrator list: " + e.getMessage());
         }
     }
