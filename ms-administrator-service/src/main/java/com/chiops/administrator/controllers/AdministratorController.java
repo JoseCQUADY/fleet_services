@@ -16,6 +16,8 @@ import jakarta.validation.Valid;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+
 
 @ExecuteOn(TaskExecutors.BLOCKING)
 @Controller("/admin")
@@ -32,6 +34,9 @@ public class AdministratorController {
 
     @Post("/register")
     public AdministratorResponseDTO createAdministrator(@Valid @Body AdministratorRequestDTO administrator) {
+        MDC.put("method", "POST");
+        MDC.put("path", "service/admin/register");
+        MDC.put("user", administrator.getEmail());
         LOG.info("Received request to register administrator: {}", administrator.getEmail());
         try {
             return administratorService.signUpAdministrator(administrator);
@@ -46,6 +51,9 @@ public class AdministratorController {
 
     @Post("/login")
     public AdministratorResponseDTO signInAdministrator(@Valid @Body AdministratorRequestDTO administrator) {
+        MDC.put("method", "POST");
+        MDC.put("path", "service/admin/login");
+        MDC.put("user", administrator.getEmail());
         LOG.info("Received request to sign in administrator: {}", administrator.getEmail());
         try {
             return administratorService.signInAdministrator(administrator);
@@ -60,6 +68,9 @@ public class AdministratorController {
 
     @Post("/get/{email}")
     public AdministratorResponseDTO findAdministratorByEmail(@Valid @PathVariable String email) {
+        MDC.put("method", "POST");
+        MDC.put("path", "service/admin/get/" + email);
+        MDC.put("user", email);
         LOG.info("Received request to find administrator by email: {}", email);
         try {
             return administratorService.findAdministratorByEmail(email);
@@ -74,6 +85,9 @@ public class AdministratorController {
 
     @Delete("/delete/{email}")
     public void deleteAdministratorByEmail(@Valid @PathVariable String email) {
+        MDC.put("method", "DELETE");
+        MDC.put("path", "service/admin/delete/" + email);
+        MDC.put("user", email);
         LOG.info("Received request to delete administrator with email: {}", email);
         try {
             administratorService.deleteAdministratorByEmail(email);
@@ -88,6 +102,9 @@ public class AdministratorController {
 
     @Put("/update")
     public AdministratorResponseDTO updateAdministrator(@Valid @Body AdministratorRequestDTO administrator) {
+        MDC.put("method", "PUT");
+        MDC.put("path", "service/admin/update");
+        MDC.put("user", administrator.getEmail());
         LOG.info("Received request to update administrator: {}", administrator.getEmail());
         try {
             return administratorService.updateAdministrator(administrator);
@@ -102,6 +119,9 @@ public class AdministratorController {
 
     @Get("/getall")
     public List<AdministratorResponseDTO> getAdministratorList() {
+        MDC.put("method", "GET");
+        MDC.put("path", "service/admin/getall");
+        MDC.put("user", "all");
         LOG.info("Received request to retrieve all administrators");
         try {
             return administratorService.getAdministratorList();

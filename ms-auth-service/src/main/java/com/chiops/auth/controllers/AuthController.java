@@ -16,6 +16,8 @@ import io.micronaut.scheduling.TaskExecutors;
 import io.micronaut.scheduling.annotation.ExecuteOn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+
 
 @ExecuteOn(TaskExecutors.BLOCKING)
 @Secured(SecurityRule.IS_ANONYMOUS)
@@ -31,6 +33,9 @@ public class AuthController {
 
     @Post("/login")
     public Mono<HttpResponse<?>> login(@Body AdministratorRequestDTO dto) {
+        MDC.put("method", "POST");
+        MDC.put("path", "service/auth/login");
+        MDC.put("user", dto.getEmail());
         LOG.info("Received login request for email: {}", dto.getEmail());
         try {
             return authProvider.login(dto);
@@ -45,6 +50,9 @@ public class AuthController {
 
     @Post("/register")
     public Mono<HttpResponse<?>> register(@Body AdministratorRequestDTO dto) {
+        MDC.put("method", "POST");
+        MDC.put("path", "service/auth/register");
+        MDC.put("user", dto.getEmail());
         LOG.info("Received registration request for email: {}", dto.getEmail());
         try {
             return authProvider.register(dto);

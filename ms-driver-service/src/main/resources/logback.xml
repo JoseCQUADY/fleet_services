@@ -18,11 +18,15 @@
                 <pattern>
                     <pattern>
                         {
+                        "timestamp": "%date{ISO8601}",
                         "level": "%level",
                         "logger": "%logger",
                         "thread": "%thread",
                         "message": "%message",
-                        "context": "%mdc",
+                        "method": "%X{method}",
+                        "path": "%X{path}",
+                        "status": "%X{status}",
+                        "user": "%X{user}",
                         "exception": "%ex"
                         }
                     </pattern>

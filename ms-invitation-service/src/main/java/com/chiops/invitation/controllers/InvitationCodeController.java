@@ -21,6 +21,8 @@ import jakarta.validation.Valid;
 import io.micronaut.validation.Validated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+
 
 @ExecuteOn(TaskExecutors.BLOCKING)
 @Controller("/code")
@@ -37,6 +39,9 @@ public class InvitationCodeController {
     @Get("/get/{code}")
     @Status(HttpStatus.FOUND)
     public InvitationCodeDTO findByCode(@PathVariable String code) {
+        MDC.put("method", "GET");
+        MDC.put("path", "service/code/get/" + code);
+        MDC.put("user", code);
         LOG.info("Received request to find invitation code: {}", code);
         try {
             return invitationCodeSevice.findByCode(code);
@@ -52,11 +57,17 @@ public class InvitationCodeController {
     @Get("/getall")
     @Status(HttpStatus.OK)
     public List<InvitationCodeDTO> getAllCodes() {
+        LOG.info("Received request to get all invitation codes");
+        MDC.put("method", "GET");
+        MDC.put("path", "service/code/getall");
+        MDC.put("user", "all_codes");
         try {
             return invitationCodeSevice.getAllCodes();
         } catch (BadRequestException e) {
+            LOG.error("Bad request while trying to get all codes: {}", e.getMessage());
             throw new BadRequestException("Error de solicitud al obtener todos los códigos: " + e.getMessage());
         } catch (InternalServerException e) {
+            LOG.error("Internal server error while trying to get all codes: {}", e.getMessage());
             throw new InternalServerException("Error interno al obtener todos los códigos: " + e.getMessage());
         }
     }
@@ -64,13 +75,17 @@ public class InvitationCodeController {
     @Get("/generate")
     @Status(HttpStatus.CREATED)
     public InvitationCodeDTO generateInvitationCode() {
-    LOG.info("Received request to generate a new invitation code");
+        MDC.put("method", "GET");
+        MDC.put("path", "service/code/generate");
+        LOG.info("Received request to generate a new invitation code");
         try {
             return invitationCodeSevice.generateCode();
         } catch (BadRequestException e) {
+            MDC.put("status", "400");
             LOG.error("Bad request while trying to generate an invitation code: {}", e.getMessage());
             throw new BadRequestException("Error de solicitud al generar un código de invitación: " + e.getMessage());
         } catch (InternalServerException e) {
+            MDC.put("status", "500");
             LOG.error("Internal server error while trying to generate an invitation code: {}", e.getMessage());
             throw new InternalServerException("Error interno al generar un código de invitación: " + e.getMessage());
         }
@@ -79,13 +94,18 @@ public class InvitationCodeController {
     @Delete("/delete/{code}")
     @Status(HttpStatus.OK)
     public void deleteByCode(@PathVariable String code) {
-    LOG.info("Received request to delete invitation code: {}", code);
+        MDC.put("method", "DELETE");
+        MDC.put("path", "service/code/delete/" + code);
+        MDC.put("user", code);
+        LOG.info("Received request to delete invitation code: {}", code);
         try {
             invitationCodeSevice.deleteByCode(code);
         } catch (BadRequestException e) {
+            MDC.put("status", "400");
             LOG.error("Bad request while trying to delete the code: {}", e.getMessage());
             throw new BadRequestException("Error de solicitud al eliminar el código: " + e.getMessage());
         } catch (InternalServerException e) {
+            MDC.put("status", "500");
             LOG.error("Internal server error while trying to delete the code: {}", e.getMessage());
             throw new InternalServerException("Error interno al eliminar el código: " + e.getMessage());
         }
@@ -93,13 +113,18 @@ public class InvitationCodeController {
 
     @Post("/use/{code}")
     public InvitationCodeDTO markAsUsed(@PathVariable String code) {
-    LOG.info("Received request to mark invitation code as used: {}", code);
+        MDC.put("method", "POST");
+        MDC.put("path", "service/code/use/" + code);
+        MDC.put("user", code);
+        LOG.info("Received request to mark invitation code as used: {}", code);
         try {
             return invitationCodeSevice.markAsUsed(code);
         } catch (BadRequestException e) {
+            MDC.put("status", "400");
             LOG.error("Bad request while trying to mark the code as used: {}", e.getMessage());
             throw new BadRequestException("Error de solicitud al marcar el código como usado: " + e.getMessage());
         } catch (InternalServerException e) {
+            MDC.put("status", "500");
             LOG.error("Internal server error while trying to mark the code as used: {}", e.getMessage());
             throw new InternalServerException("Error interno al marcar el código como usado: " + e.getMessage());
         }
