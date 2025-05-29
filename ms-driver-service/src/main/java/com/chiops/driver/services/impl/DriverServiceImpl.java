@@ -86,6 +86,7 @@ public class DriverServiceImpl implements DriverService {
         existingDriver.getAddress().setCity(driverDTO.getCity());
         existingDriver.getAddress().setState(driverDTO.getState());
         existingDriver.getLicense().setLicenseNumber(driverDTO.getLicenseNumber());
+        existingDriver.setMonthlySalary(driverDTO.getMonthlySalary());
         existingDriver.setRegistrationDate(driverDTO.getRegistrationDate());
 
         driverRepository.update(existingDriver);
