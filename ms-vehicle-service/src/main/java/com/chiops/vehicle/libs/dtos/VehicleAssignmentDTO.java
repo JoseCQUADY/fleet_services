@@ -12,11 +12,11 @@ public class VehicleAssignmentDTO {
 
     @NotBlank
     private String driverCurp;
-    
+
     private LocalDateTime assignedAt;
-    
+
     private LocalDateTime releasedAt;
-    
+
     private String status;
 
     @NotBlank

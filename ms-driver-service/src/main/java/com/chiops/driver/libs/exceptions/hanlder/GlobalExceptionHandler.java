@@ -32,9 +32,8 @@ public class GlobalExceptionHandler implements ExceptionHandler<RuntimeException
             exception.getMessage(),
             request.getPath()
         );
-
         return HttpResponse.status(status).body(error);
-    }
+        }
 
     private HttpStatus determineHttpStatus(RuntimeException ex) {
         if (ex instanceof NotFoundException) return HttpStatus.NOT_FOUND;
