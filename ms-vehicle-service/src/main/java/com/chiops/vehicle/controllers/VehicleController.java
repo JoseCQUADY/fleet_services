@@ -3,26 +3,19 @@ package com.chiops.vehicle.controllers;
 import com.chiops.vehicle.libs.dtos.VehicleAssignmentDTO;
 import com.chiops.vehicle.libs.dtos.VehicleDTO;
 import com.chiops.vehicle.libs.dtos.VehicleWithImageDTO;
-import com.chiops.vehicle.libs.exceptions.entities.ErrorResponse;
 import com.chiops.vehicle.libs.exceptions.exception.BadRequestException;
 import com.chiops.vehicle.libs.exceptions.exception.InternalServerException;
-import com.chiops.vehicle.libs.exceptions.exception.MethodNotAllowedException;
-import com.chiops.vehicle.libs.exceptions.exception.NotFoundException;
 import com.chiops.vehicle.services.ImageStoreService;
 import com.chiops.vehicle.services.VehicleImageDecodingService;
 import com.chiops.vehicle.services.VehicleService;
 
-import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
-import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.*;
-import io.micronaut.http.annotation.Error;
 import io.micronaut.scheduling.TaskExecutors;
 import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
-import jakarta.validation.ConstraintViolationException;
 
 import java.util.List;
 @ExecuteOn(TaskExecutors.BLOCKING)
@@ -46,8 +39,6 @@ public class VehicleController {
     public VehicleDTO createVehicle(@Body VehicleWithImageDTO vehicleWithImageDTO) {
         try {
         return decodingService.createVehicleFromEncodedImage(vehicleWithImageDTO);
-    }catch(ConstraintViolationException e){
-            throw new BadRequestException("Bad request while trying to create the route: " + e.getMessage());
     }catch (BadRequestException e) {
         throw new BadRequestException("Bad request while trying to create the vehicle: " + e.getMessage());
     } catch (InternalServerException e) {
