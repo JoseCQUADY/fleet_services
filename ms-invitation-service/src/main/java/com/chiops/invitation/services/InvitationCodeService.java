@@ -5,6 +5,8 @@ import com.chiops.invitation.libs.dto.InvitationCodeDTO;
 import io.micronaut.http.HttpResponse;
 import jakarta.inject.Singleton;
 
+import java.util.List;
+
 @Singleton
 public interface InvitationCodeService {
 
@@ -16,4 +18,5 @@ public interface InvitationCodeService {
 
     InvitationCodeDTO markAsUsed(String code);
 
+    List<InvitationCodeDTO> getAllCodes();
 }

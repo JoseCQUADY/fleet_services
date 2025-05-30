@@ -1,5 +1,7 @@
 package com.chiops.gateway.libs.clients;
 
+import java.util.List;
+
 import com.chiops.gateway.libs.dtos.InvitationCodeDTO;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.*;
@@ -11,6 +13,10 @@ public interface InvitationCodeClient {
   @Get("/get/{code}")
   @Status(HttpStatus.FOUND)
   public InvitationCodeDTO findByCode(@PathVariable String code);
+
+  @Get("/getall")
+  @Status(HttpStatus.OK)
+  List<InvitationCodeDTO> getAllCodes();
 
   @Get("/generate")
   @Status(HttpStatus.CREATED)
