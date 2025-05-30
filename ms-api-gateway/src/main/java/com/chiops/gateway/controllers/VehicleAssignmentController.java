@@ -29,25 +29,55 @@ public class VehicleAssignmentController {
         MDC.put("method", "GET");
         MDC.put("path", "api/vehicle/assignment/status/" + status);
         MDC.put("user", status);
-        LOG.info("Received request to find vehicle assignments by status: {}", status);
-        return vehicleAssignmentClient.findByStatus(status);
+        try {
+            LOG.info("Received request to find vehicle assignments by status: {}", status);
+            List<VehicleAssignmentDTO> response = vehicleAssignmentClient.findByStatus(status);
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error retrieving vehicle assignments by status: {}", status, e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Get(value = "/history", produces = MediaType.APPLICATION_JSON)
     public List<VehicleAssignmentDTO> assignmentsHistory() {
         MDC.put("method", "GET");
         MDC.put("path", "api/vehicle/assignment/history");
-        LOG.info("Received request to get vehicle assignments history");
-        return vehicleAssignmentClient.assignmentsHistory();
+        try {
+            LOG.info("Received request to get vehicle assignments history");
+            List<VehicleAssignmentDTO> response = vehicleAssignmentClient.assignmentsHistory();
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error retrieving vehicle assignments history", e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Get(value = "/vin/{vin}", produces = MediaType.APPLICATION_JSON)
     public VehicleAssignmentDTO findByVin(@PathVariable String vin) {
-        LOG.info("Received request to find vehicle assignment by VIN: {}", vin);
         MDC.put("method", "GET");
         MDC.put("path", "api/vehicle/assignment/vin/" + vin);
         MDC.put("user", vin);
-        return vehicleAssignmentClient.findByVin(vin);
+        try {
+            LOG.info("Received request to find vehicle assignment by VIN: {}", vin);
+            VehicleAssignmentDTO response = vehicleAssignmentClient.findByVin(vin);
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error retrieving vehicle assignment by VIN: {}", vin, e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Post(value = "/assign", produces = MediaType.APPLICATION_JSON)
@@ -55,8 +85,18 @@ public class VehicleAssignmentController {
         MDC.put("method", "POST");
         MDC.put("path", "api/vehicle/assignment/assign");
         MDC.put("user", vehicleAssignmentDto.getVin());
-        LOG.info("Received request to assign vehicle to driver: {}", vehicleAssignmentDto.getVin());
-        return vehicleAssignmentClient.assignVehicleToDriver(vehicleAssignmentDto);
+        try {
+            LOG.info("Received request to assign vehicle to driver: {}", vehicleAssignmentDto.getVin());
+            VehicleAssignmentDTO response = vehicleAssignmentClient.assignVehicleToDriver(vehicleAssignmentDto);
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error assigning vehicle to driver: {}", vehicleAssignmentDto.getVin(), e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Post(value = "/release", produces = MediaType.APPLICATION_JSON)
@@ -64,8 +104,18 @@ public class VehicleAssignmentController {
         MDC.put("method", "POST");
         MDC.put("path", "api/vehicle/assignment/release");
         MDC.put("user", vehicleAssignmentDto.getVin());
-        LOG.info("Received request to release vehicle from driver: {}", vehicleAssignmentDto.getVin());
-        return vehicleAssignmentClient.releaseVehicleFromDriver(vehicleAssignmentDto);
+        try {
+            LOG.info("Received request to release vehicle from driver: {}", vehicleAssignmentDto.getVin());
+            VehicleAssignmentDTO response = vehicleAssignmentClient.releaseVehicleFromDriver(vehicleAssignmentDto);
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error releasing vehicle from driver: {}", vehicleAssignmentDto.getVin(), e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Put(value = "/change", produces = MediaType.APPLICATION_JSON)
@@ -73,7 +123,17 @@ public class VehicleAssignmentController {
         MDC.put("method", "PUT");
         MDC.put("path", "api/vehicle/assignment/change");
         MDC.put("user", vehicleAssignmentDto.getVin());
-        LOG.info("Received request to change driver for vehicle: {}", vehicleAssignmentDto.getVin());
-        return vehicleAssignmentClient.changeDriver(vehicleAssignmentDto);
+         try {
+            LOG.info("Received request to change driver for vehicle: {}", vehicleAssignmentDto.getVin());
+            VehicleAssignmentDTO response = vehicleAssignmentClient.changeDriver(vehicleAssignmentDto);
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error changing driver for vehicle: {}", vehicleAssignmentDto.getVin(), e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 }

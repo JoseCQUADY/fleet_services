@@ -35,7 +35,13 @@ public class AdministratorController {
         MDC.put("path", "api/admin/register");
         MDC.put("user", administrator.getEmail());
         LOG.info("Received request to register administrator: {}", administrator.getEmail());
-        return adminClient.createAdministrator(administrator);
+        try {
+            AdministratorResponseDTO response = adminClient.createAdministrator(administrator);
+            MDC.put("status", "201");
+            return response;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Post("/login")
@@ -44,7 +50,14 @@ public class AdministratorController {
         MDC.put("path", "api/admin/login");
         MDC.put("user", administrator.getEmail());
         LOG.info("Received request to sign in administrator: {}", administrator.getEmail());
-        return adminClient.signInAdministrator(administrator);
+
+        try {
+            AdministratorResponseDTO response = adminClient.signInAdministrator(administrator);
+            MDC.put("status", "200");
+            return response;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Post("/get/{email}")
@@ -53,7 +66,14 @@ public class AdministratorController {
         MDC.put("path", "api/admin/get/" + email);
         MDC.put("user", email);
         LOG.info("Received request to find administrator by email: {}", email);
-        return adminClient.findAdministratorByEmail(email);
+
+        try {
+            AdministratorResponseDTO response = adminClient.findAdministratorByEmail(email);
+            MDC.put("status", "200");
+            return response;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Delete("/delete/{email}")
@@ -62,7 +82,12 @@ public class AdministratorController {
         MDC.put("path", "api/admin/delete/" + email);
         MDC.put("user", email);
         LOG.info("Received request to delete administrator by email: {}", email);
-        adminClient.deleteAdministratorByEmail(email);
+        try {
+            adminClient.deleteAdministratorByEmail(email);
+            MDC.put("status", "204");
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Put("/update")
@@ -71,7 +96,13 @@ public class AdministratorController {
         MDC.put("path", "api/admin/update");
         MDC.put("user", administrator.getEmail());
         LOG.info("Received request to update administrator: {}", administrator.getEmail());
-        return adminClient.updateAdministrator(administrator);
+        try {
+            AdministratorResponseDTO response = adminClient.updateAdministrator(administrator);
+            MDC.put("status", "200");
+            return response;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Get("/getall")
@@ -79,7 +110,14 @@ public class AdministratorController {
         MDC.put("method", "GET");
         MDC.put("path", "api/admin/getall");
         LOG.info("Received request to get all administrators");
-        return adminClient.getAdministratorList();
+
+        try {
+            List<AdministratorResponseDTO> response = adminClient.getAdministratorList();
+            MDC.put("status", "200");
+            return response;
+        } finally {
+            MDC.clear();
+        }
     }
 
 }

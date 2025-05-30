@@ -30,8 +30,18 @@ public class RouteController {
         MDC.put("method", "POST");
         MDC.put("path", "api/route/create");
         MDC.put("user", route.getVehicleVin());
-        LOG.info("Received request to create route with Vehicle VIN: {}", route.getVehicleVin());
-        return routeClient.createRoute(route);
+        try {
+            LOG.info("Received request to create route with Vehicle VIN: {}", route.getVehicleVin());
+            RouteDTO response = routeClient.createRoute(route);
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error creating route with Vehicle VIN: {}", route.getVehicleVin(), e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Put("/update")
@@ -39,8 +49,18 @@ public class RouteController {
         MDC.put("method", "PUT");
         MDC.put("path", "api/route/update");
         MDC.put("user", route.getVehicleVin());
-        LOG.info("Received request to update route with Vehicle VIN: {}", route.getVehicleVin());
-        return routeClient.updateRoute(route);
+        try {
+            LOG.info("Received request to update route with Vehicle VIN: {}", route.getVehicleVin());
+            RouteDTO response = routeClient.updateRoute(route);
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error updating route with Vehicle VIN: {}", route.getVehicleVin(), e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Delete("/delete/{vin}")
@@ -48,16 +68,36 @@ public class RouteController {
         MDC.put("method", "DELETE");
         MDC.put("path", "api/route/delete/" + vin);
         MDC.put("user", vin);
-        LOG.info("Received request to delete route with Vehicle VIN: {}", vin);
-        return routeClient.deleteRoute(vin);
+        try {
+            LOG.info("Received request to delete route with Vehicle VIN: {}", vin);
+            RouteDTO response = routeClient.deleteRoute(vin);
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error deleting route with Vehicle VIN: {}", vin, e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Get("/getall")
     public Iterable<RouteDTO> getAllRoutes() {
         MDC.put("method", "GET");
         MDC.put("path", "api/route/getall");
-        LOG.info("Received request to get all routes");
-        return routeClient.getAllRoutes();
+        try {
+            LOG.info("Received request to get all routes");
+            Iterable<RouteDTO> response = routeClient.getAllRoutes();
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error retrieving all routes", e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Get("/get/{vin}")
@@ -65,7 +105,17 @@ public class RouteController {
         MDC.put("method", "GET");
         MDC.put("path", "api/route/get/" + vin);
         MDC.put("user", vin);
-        LOG.info("Received request to get route by Vehicle VIN: {}", vin);
-        return routeClient.getRoutesByVin(vin);
+        try {
+            LOG.info("Received request to get route by Vehicle VIN: {}", vin);
+            RouteDTO response = routeClient.getRoutesByVin(vin);
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error retrieving route with Vehicle VIN: {}", vin, e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 }

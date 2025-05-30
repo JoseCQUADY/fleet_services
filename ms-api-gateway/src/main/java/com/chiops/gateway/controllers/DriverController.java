@@ -31,8 +31,18 @@ public class DriverController {
         MDC.put("method", "POST");
         MDC.put("path", "api/driver/create");
         MDC.put("user", driverDTO.getCurp());
-        LOG.info("Received request to create driver with CURP: {}", driverDTO.getCurp());
-        return driverClient.createDriver(driverDTO);
+        try {
+            LOG.info("Received request to create driver with CURP: {}", driverDTO.getCurp());
+            DriverDTO response = driverClient.createDriver(driverDTO);
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error creating driver with CURP: {}", driverDTO.getCurp(), e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Put("/update")
@@ -40,8 +50,18 @@ public class DriverController {
         MDC.put("method", "PUT");
         MDC.put("path", "api/driver/update");
         MDC.put("user", driverDTO.getCurp());
-        LOG.info("Received request to update driver with CURP: {}", driverDTO.getCurp());
-        return driverClient.updateDriver(driverDTO);
+        try {
+            LOG.info("Received request to update driver with CURP: {}", driverDTO.getCurp());
+            DriverDTO response = driverClient.updateDriver(driverDTO);
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error updating driver with CURP: {}", driverDTO.getCurp(), e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Delete("/delete/{curp}")
@@ -49,8 +69,18 @@ public class DriverController {
         MDC.put("method", "DELETE");
         MDC.put("path", "api/driver/delete/" + curp);
         MDC.put("user", curp);
-        LOG.info("Received request to delete driver with CURP: {}", curp);
-        driverClient.deleteDriver(curp);
+        try {
+            LOG.info("Received request to delete driver with CURP: {}", curp);
+            driverClient.deleteDriver(curp);
+            MDC.put("status", "200");
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error deleting driver with CURP: {}", curp, e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
+        
     }
 
     @Get("/get/{curp}")
@@ -58,8 +88,18 @@ public class DriverController {
         MDC.put("method", "GET");
         MDC.put("path", "api/driver/get/" + curp);
         MDC.put("user", curp);
-        LOG.info("Received request to get driver by CURP: {}", curp);
-        return driverClient.getDriverByCurp(curp);
+        try {
+            LOG.info("Received request to get driver by CURP: {}", curp);
+            DriverDTO response = driverClient.getDriverByCurp(curp);
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error retrieving driver by CURP: {}", curp, e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Get("/getall")
@@ -67,7 +107,17 @@ public class DriverController {
         MDC.put("method", "GET");
         MDC.put("path", "api/driver/getall");
         MDC.put("user", "all");
-        LOG.info("Received request to get all drivers");
-        return driverClient.getAllDrivers();
+        try {
+            LOG.info("Received request to get all drivers");
+            List<DriverDTO> response = driverClient.getAllDrivers();
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error retrieving all drivers", e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 }

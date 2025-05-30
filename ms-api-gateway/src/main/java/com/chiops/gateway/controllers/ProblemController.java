@@ -26,8 +26,18 @@ public class ProblemController {
         MDC.put("method", "POST");
         MDC.put("path", "api/route/problem/assign");
         MDC.put("user", problem.getVin());
-        LOG.info("Received request to assign problem with VIN: {}", problem.getVin());
-        return problemClient.assignProblem(problem);
+        try {
+            LOG.info("Received request to assign problem with VIN: {}", problem.getVin());
+            ProblemDTO response = problemClient.assignProblem(problem);
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error assigning problem with VIN: {}", problem.getVin(), e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Put("/update")
@@ -35,8 +45,18 @@ public class ProblemController {
         MDC.put("method", "PUT");
         MDC.put("path", "api/route/problem/update");
         MDC.put("user", problem.getVin());
-        LOG.info("Received request to update problem with VIN: {}", problem.getVin());
-        return problemClient.updateProblem(problem);
+        try {
+            LOG.info("Received request to update problem with VIN: {}", problem.getVin());
+            ProblemDTO response = problemClient.updateProblem(problem);
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error updating problem with VIN: {}", problem.getVin(), e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Delete("/delete/{vin}")
@@ -44,8 +64,17 @@ public class ProblemController {
         MDC.put("method", "DELETE");
         MDC.put("path", "api/route/problem/delete/" + vin);
         MDC.put("user", vin);
-        LOG.info("Received request to delete problem with VIN: {}", vin);
-        problemClient.deleteProblem(vin);
+        try {
+            LOG.info("Received request to delete problem with VIN: {}", vin);
+            problemClient.deleteProblem(vin);
+            MDC.put("status", "200");
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error deleting problem with VIN: {}", vin, e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Get("/get/{vin}")
@@ -53,8 +82,18 @@ public class ProblemController {
         MDC.put("method", "GET");
         MDC.put("path", "api/route/problem/get/" + vin);
         MDC.put("user", vin);
-        LOG.info("Received request to get problem by VIN: {}", vin);
-        return problemClient.getProblemById(vin);
+        try {
+            LOG.info("Received request to get problem by VIN: {}", vin);
+            ProblemDTO response = problemClient.getProblemById(vin);
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error retrieving problem with VIN: {}", vin, e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
 }

@@ -34,8 +34,18 @@ public class InvitationCodeController {
         MDC.put("method", "GET");
         MDC.put("path", "api/code/get/" + code);
         MDC.put("user", code);
-        LOG.info("Received request to find invitation code: {}", code);
-        return invitationCodeClient.findByCode(code);
+        try {
+            LOG.info("Received request to find invitation code: {}", code);
+            InvitationCodeDTO response = invitationCodeClient.findByCode(code);
+            MDC.put("status", "302");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error finding invitation code: {}", code, e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Get("/getall")
@@ -43,16 +53,36 @@ public class InvitationCodeController {
     public List<InvitationCodeDTO> getAllCodes() {
         MDC.put("method", "GET");
         MDC.put("path", "api/code/getall");
-        LOG.info("Received request to get all invitation codes");
-        return invitationCodeClient.getAllCodes();
+        try {
+            LOG.info("Received request to get all invitation codes");
+            List<InvitationCodeDTO> response = invitationCodeClient.getAllCodes();
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error retrieving all invitation codes", e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
     @Get("/generate")
     @Status(HttpStatus.CREATED)
     public InvitationCodeDTO generateInvitationCode() {
         MDC.put("method", "GET");
         MDC.put("path", "api/code/generate");
-        LOG.info("Received request to generate a new invitation code");
-        return invitationCodeClient.generateInvitationCode();
+        try {
+            LOG.info("Received request to generate a new invitation code");
+            InvitationCodeDTO response = invitationCodeClient.generateInvitationCode();
+            MDC.put("status", "201");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error generating invitation code", e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Delete("/delete/{code}")
@@ -61,8 +91,17 @@ public class InvitationCodeController {
         MDC.put("method", "DELETE");
         MDC.put("path", "api/code/delete/" + code);
         MDC.put("user", code);
-        LOG.info("Received request to delete invitation code: {}", code);
-        invitationCodeClient.deleteByCode(code);
+        try {
+            LOG.info("Received request to delete invitation code: {}", code);
+            invitationCodeClient.deleteByCode(code);
+            MDC.put("status", "200");
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error deleting invitation code: {}", code, e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Post("/use/{code}")
@@ -70,8 +109,18 @@ public class InvitationCodeController {
         MDC.put("method", "POST");
         MDC.put("path", "api/code/use/" + code);
         MDC.put("user", code);
-        LOG.info("Received request to mark invitation code as used: {}", code);
-        return invitationCodeClient.markAsUsed(code);
+        try {
+            LOG.info("Received request to mark invitation code as used: {}", code);
+            InvitationCodeDTO response = invitationCodeClient.markAsUsed(code);
+            MDC.put("status", "200");
+            return response;
+        } catch (Exception e) {
+            MDC.put("status", "500");
+            LOG.error("Error marking invitation code as used: {}", code, e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
     }
 
 }
