@@ -24,8 +24,7 @@ public interface VehicleClient {
     @Delete("/delete/{vin}")
     public void deleteVehicle(@PathVariable String vin);
 
-    @Get(value = "/{vin}",
-            consumes = MediaType.APPLICATION_JSON)
+    @Get("/get/{vin}")
     public VehicleDTO getVehicleByVin(@PathVariable String vin);
 
     @Get(value = "/model/{model}",

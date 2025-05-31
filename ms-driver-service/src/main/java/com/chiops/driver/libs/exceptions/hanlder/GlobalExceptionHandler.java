@@ -1,5 +1,7 @@
 package com.chiops.driver.libs.exceptions.hanlder;
 
+import java.util.stream.Collectors;
+
 import com.chiops.driver.libs.exceptions.entities.ErrorResponse;
 import com.chiops.driver.libs.exceptions.exception.*;
 
@@ -12,6 +14,8 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.Produces;
 import io.micronaut.http.server.exceptions.ExceptionHandler;
 import jakarta.inject.Singleton;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 
 
 @Produces
@@ -29,25 +33,6 @@ public class GlobalExceptionHandler implements ExceptionHandler<RuntimeException
             request.getPath()
         );
         return HttpResponse.status(status).body(error);
-    }
-        @Error(status = HttpStatus.NOT_FOUND, global = true)
-        public HttpResponse<ErrorResponse> handleNotFound(HttpRequest<?> request) {
-            ErrorResponse err = new ErrorResponse(
-                HttpStatus.NOT_FOUND,
-                "Endpoint " + request.getPath() + " not found",
-                request.getPath()
-            );
-            return HttpResponse.status(HttpStatus.NOT_FOUND).body(err);
-        }
-
-        @Error(status = HttpStatus.METHOD_NOT_ALLOWED, global = true)
-        public HttpResponse<ErrorResponse> handleMethodNotAllowed(HttpRequest<?> request) {
-            ErrorResponse err = new ErrorResponse(
-                HttpStatus.METHOD_NOT_ALLOWED,
-                "Method " + request.getMethod() + " not allowed for " + request.getPath(),
-                request.getPath()
-            );
-            return HttpResponse.status(HttpStatus.METHOD_NOT_ALLOWED).body(err);
         }
 
     private HttpStatus determineHttpStatus(RuntimeException ex) {
